@@ -73,6 +73,10 @@ void Error_Handler(void);
 #define ANALOG_READ_PA3_Pin_GPIO_Port GPIOA
 #define PUMP_PA5_Pin_Pin GPIO_PIN_5
 #define PUMP_PA5_Pin_GPIO_Port GPIOA
+#define encoder1PA6_Pin GPIO_PIN_6
+#define encoder1PA6_GPIO_Port GPIOA
+#define encoder2PA7_Pin GPIO_PIN_7
+#define encoder2PA7_GPIO_Port GPIOA
 #define LD1_Pin GPIO_PIN_0
 #define LD1_GPIO_Port GPIOB
 #define STEPPER3_PE13_Pin_Pin GPIO_PIN_13

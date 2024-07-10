@@ -1,0 +1,6 @@
+-Red - Motor power terminal (+)
+-Black - Quad encoder Ground
+-Green - Quad encoder B signal
+-Blue - Quad encoder +5Vcc
+-Yellow - Quad encoder A signal
+-White - Motor power terminal (-)
