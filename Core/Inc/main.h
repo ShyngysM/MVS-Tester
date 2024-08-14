@@ -105,8 +105,10 @@ void Error_Handler(void);
 #define VIBROMOTOR_PG12_Pin_GPIO_Port GPIOG
 #define STEPPER2_PG14_Pin_Pin GPIO_PIN_14
 #define STEPPER2_PG14_Pin_GPIO_Port GPIOG
-#define STEPPER1_PB6_Pin_Pin GPIO_PIN_6
-#define STEPPER1_PB6_Pin_GPIO_Port GPIOB
+#define ENCMOTOR_PB6_Pin GPIO_PIN_6
+#define ENCMOTOR_PB6_GPIO_Port GPIOB
+#define ENCMOTOR_PB7_Pin GPIO_PIN_7
+#define ENCMOTOR_PB7_GPIO_Port GPIOB
 #define LD2_Pin GPIO_PIN_1
 #define LD2_GPIO_Port GPIOE
 
