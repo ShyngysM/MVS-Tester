@@ -140,54 +140,31 @@ int main(void)
 
 
   // pump on
-  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  // HAL_Delay(3000);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+  HAL_Delay(2000);
 
-  // vibro motor
-  // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET);
-  // HAL_Delay(100);
-  // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_RESET);
+  for (int i = 0; i < 100; i++) {
+
+    uart_buf_len = sprintf(uart_buf, "Messung Nr.: %d; \r\n", i+1);
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+
+    measure(&Meas);
+    analyse(&Meas);
+    uart_transmit_info();
+    HAL_Delay(500);
+  }
+
+// NOTE: uart_transmit_digital() increases the measurement time up to 1 min. and 40 s, without it 31 s the loading time into µC is 11 s
+
+  // pump off
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+
+  uart_transmit_digital();
 
 
-  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
-  // if (Meas.bad == false && Meas.pulses >= SENSITIVITY) {
-  //   // rotate 180
-  //   STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI, DIR_CW);
-  //   HAL_Delay(1500);
-  //   measure(&Meas);
-  //   analyse(&Meas);
-  //   uart_transmit_info();
 
-  //   if (Meas.bad == false && Meas.pulses >= SENSITIVITY) {
-  //     // rotate -45° and reset pump
-  //     STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI / 4, DIR_CCW);
-  //     HAL_Delay(1500);
-  //     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-  //     HAL_Delay(1000);
-  //     // rotate to 0°
-  //     STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI * 3 / 4, DIR_CCW);
-  //   } else {
-  //     // rotate +45° and reset pump
-  //     STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI / 4, DIR_CW);
-  //     HAL_Delay(1500);
-  //     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-  //     HAL_Delay(1000);
-  //     // rotate to 0°
-  //     STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI * 3 / 4, DIR_CW);
-  //   }
-  // } else {
-  //   // rotate 180°
-  //   STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI, DIR_CW);
-  //   HAL_Delay(1500);
-  //   // rotate +45° and reset pump
-  //   STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI / 4, DIR_CW);
-  //   HAL_Delay(1500);
-  //   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-  //   HAL_Delay(1000);
-  //   // rotate to 0°
-  //   STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI * 3 / 4, DIR_CW);
-  // }
+
 
   /* USER CODE END 2 */
 
@@ -195,12 +172,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1) {
 
-    timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
-    update_encoder(&enc_instance, &htim3);
-    encoder_position = enc_instance.position;
-    uart_buf_len =
-        sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
-    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    // timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
+    // update_encoder(&enc_instance, &htim3);
+    // encoder_position = enc_instance.position;
+    // uart_buf_len =
+    //     sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
+    // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
     // rotate(PI/2, encoder_position);
 
     /* USER CODE END WHILE */
@@ -650,6 +627,7 @@ void measure(struct MeasureData *s) {
   // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
 }
 
+// TODO: reaktionszeit ausrechnen vibr to first pulse
 void analyse(struct MeasureData *s) {
   // digitalize signal v:[0,1]
   const int TRIGGER = 39718;
@@ -714,8 +692,6 @@ void uart_transmit_digital(void) {
 }
 void uart_transmit_info(void) {
   /* Transmit extra measurement data via uart */
-  uart_buf_len = sprintf(uart_buf, "Measurements  \n");
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
   uart_buf_len = sprintf(uart_buf, "htime = %d ms; pulses = %d;   \r\n",
                          Meas.htime, Meas.pulses);
   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
