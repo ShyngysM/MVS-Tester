@@ -34,6 +34,7 @@
 struct MeasureData {
   uint16_t signal[100000];
   int t_vibr_start;
+  int t_first_pulse;
   int t_end;
   int pulses;
   int htime;
@@ -64,8 +65,8 @@ encoder_instance enc_instance;
 
 const int PI = 445;
 const int SENSITIVITY = 5;
-// 50 char buffer to store our message
-char uart_buf[50];
+// 100 char buffer to store our message
+char uart_buf[200];
 int uart_buf_len;
 
 /* USER CODE END PV */
@@ -132,25 +133,22 @@ int main(void)
 
   /////////////////START/////////////////////////
 
-  // measure(&Meas);
-  // uart_transmit_analog();
-  // analyse(&Meas);
-  // uart_transmit_digital();
-  // uart_transmit_info();
-
-
   // pump on
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
   HAL_Delay(2000);
 
-  for (int i = 0; i < 100; i++) {
+  uart_buf_len = sprintf(uart_buf, "MeasurementNr.,Pulses,Hightime[ms],t_vibration[ms],t_responce[ms],bad[bool]\r\n");
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
-    uart_buf_len = sprintf(uart_buf, "Messung Nr.: %d; \r\n", i+1);
-    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-
+  for (int i = 0; i < 10; i++) {
     measure(&Meas);
     analyse(&Meas);
-    uart_transmit_info();
+    
+    uart_buf_len = sprintf(uart_buf, "%d, %d, %d, %d, %d, %d\r\n",
+                           i+1, Meas.htime, Meas.pulses, Meas.t_vibr_start, Meas.t_first_pulse, Meas.bad);
+
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+
     HAL_Delay(500);
   }
 
@@ -418,7 +416,7 @@ static void MX_USART3_UART_Init(void)
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.Mode = UART_MODE_TX;
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
   huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
@@ -627,7 +625,6 @@ void measure(struct MeasureData *s) {
   // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
 }
 
-// TODO: reaktionszeit ausrechnen vibr to first pulse
 void analyse(struct MeasureData *s) {
   // digitalize signal v:[0,1]
   const int TRIGGER = 39718;
@@ -669,9 +666,18 @@ void analyse(struct MeasureData *s) {
   if (s->pulses == 0) {
     s->bad = true;
   }
+  // find and save first pulse after vibration
+  for (int i = s->t_vibr_start; i <= s->t_end; i++) {
+    if (s->signal[i] == 0) {
+      s->t_first_pulse = i;
+      break;
+    }
+  
+  }
   // resolve the variables to human readable values
   s->htime = s->htime * SCALE / s->t_end;
   s->t_vibr_start = s->t_vibr_start * SCALE / s->t_end;
+  s->t_first_pulse = s->t_first_pulse * SCALE / s->t_end;
 }
 
 void uart_transmit_analog(void) {
@@ -692,11 +698,16 @@ void uart_transmit_digital(void) {
 }
 void uart_transmit_info(void) {
   /* Transmit extra measurement data via uart */
-  uart_buf_len = sprintf(uart_buf, "htime = %d ms; pulses = %d;   \r\n",
+  uart_buf_len = sprintf(uart_buf, " htime = %d ms; pulses = %d;   \r\n",
                          Meas.htime, Meas.pulses);
   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  uart_buf_len = sprintf(uart_buf, "bad state = %d; vibr = %d ms \r\n",
-                         Meas.bad, Meas.t_vibr_start);
+
+  uart_buf_len = sprintf(uart_buf, " first pulse = %d ms; vibr = %d ms \r\n",
+                         Meas.t_first_pulse, Meas.t_vibr_start);
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+
+  uart_buf_len = sprintf(uart_buf, "   BAD STATE = %d \r\n",
+                         Meas.bad);
   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 }
 
