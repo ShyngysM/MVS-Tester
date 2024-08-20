@@ -140,12 +140,12 @@ int main(void)
   uart_buf_len = sprintf(uart_buf, "MeasurementNr.,Pulses,Hightime[ms],t_vibration[ms],t_responce[ms],bad[bool]\r\n");
   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 100; i++) {
     measure(&Meas);
     analyse(&Meas);
     
     uart_buf_len = sprintf(uart_buf, "%d, %d, %d, %d, %d, %d\r\n",
-                           i+1, Meas.htime, Meas.pulses, Meas.t_vibr_start, Meas.t_first_pulse, Meas.bad);
+                           i+1, Meas.pulses, Meas.htime, Meas.t_vibr_start, Meas.t_first_pulse, Meas.bad);
 
     HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
@@ -416,7 +416,7 @@ static void MX_USART3_UART_Init(void)
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_TX;
+  huart3.Init.Mode = UART_MODE_TX_RX;
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
   huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
@@ -595,7 +595,7 @@ void measure(struct MeasureData *s) {
   for (int i = 0; tim_val_ms < ONESEC; i++) {
 
     if (!is_vibrating && tim_val_ms >= ONESEC * 0.2 &&
-        tim_val_ms < ONESEC * 0.3) {
+        tim_val_ms < ONESEC * 0.21) {
       HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET); // vibrator ON
       // saving time of begin vibration
       s->t_vibr_start = i;
@@ -656,7 +656,7 @@ void analyse(struct MeasureData *s) {
     }
   }
   // check if sensor has been open after vibration + Einschwingungszeit
-  for (int i = (int)(s->t_end * 0.75); i < s->t_end; i++) {
+  for (int i = (int)(s->t_end * 0.90); i < s->t_end; i++) {
     if (s->signal[i] == 0) {
       s->bad = true;
       break;
