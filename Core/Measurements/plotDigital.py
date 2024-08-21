@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # scaling the time axis 1000 = ms
 SCALE = 1000
 
-data_MCU = pd.read_csv('mvs10.txt',sep=',', skiprows=301)
+data_MCU = pd.read_csv('mvs01.csv',sep=',', skiprows=102)
 
 
 digital_df = pd.DataFrame(data_MCU)                                        

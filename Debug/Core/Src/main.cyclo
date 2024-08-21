@@ -7,7 +7,7 @@
 ../Core/Src/main.c:452:13:MX_USB_OTG_HS_USB_Init	1
 ../Core/Src/main.c:473:13:MX_GPIO_Init	1
 ../Core/Src/main.c:582:6:measure	7
-../Core/Src/main.c:628:6:analyse	11
+../Core/Src/main.c:628:6:analyse	13
 ../Core/Src/main.c:683:6:uart_transmit_analog	2
 ../Core/Src/main.c:690:6:uart_transmit_digital	2
 ../Core/Src/main.c:699:6:uart_transmit_info	1
