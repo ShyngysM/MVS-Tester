@@ -160,41 +160,34 @@ int main(void) {
 
   /////////////////START/////////////////////////
 
-  // measure(&Meas);
-  // uart_transmit_analog();
-  // analyse(&Meas);
-  // uart_transmit_digital();
-  // uart_transmit_info();
-
-  // stepper init
-  // STEPPERS_Init_TMR(&htim17); // nötig für init look also ISR CODE BEGIN 4
-  // STEPPER_SetSpeed(STEPPER_MOTOR1, 14); // set RPM
-
   // pump on
-  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  // HAL_Delay(3000);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+  HAL_Delay(3000);
 
-  // vibro motor
-  // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_SET);
-  // HAL_Delay(100);
-  // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_RESET);
 
-  // for (int m = 0; m < 10; m++) {
-  //   // pump on
-  //   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  //   HAL_Delay(4000);
-  //   uart_buf_len = sprintf(uart_buf, "Number %d \r\n", m + 1);
-  //   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  //   measure(&Meas);
-  //   // pump on
-  //   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-  //   uart_transmit_analog();
-  //   analyse(&Meas);
-  //   // uart_transmit_digital();
-  //   uart_transmit_info();
-  // }
+  measure(&Meas);
+  // uart_transmit_analog();
+  analyse(&Meas);
+  // uart_transmit_digital();
+  uart_transmit_info();
+  while (Meas.bad == true) {
+    timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
+    update_encoder(&enc_instance, &htim3);
+    encoder_position = enc_instance.position;
 
-  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+    if (encoder_position == PI/2 + PI/4 ) {
+      // rotate(-PI/2, encoder_position);
+      break;
+    }
+    else {
+      // rotate 90°+ 45°
+      rotate(-PI/2, encoder_position);
+    }
+  }
+
+
+
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
   // if (Meas.bad == false && Meas.pulses >= SENSITIVITY) {
   //   // rotate 180
@@ -233,9 +226,9 @@ int main(void) {
   //   // rotate to 0°
   //   STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI * 3 / 4, DIR_CW);
   // }
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  HAL_Delay(7000);
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+  // HAL_Delay(7000);
+  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
   // Sequence for encoder motor
   /* USER CODE END 2 */
@@ -244,14 +237,14 @@ int main(void) {
   /* USER CODE BEGIN WHILE */
   while (1) {
 
-    timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
-    update_encoder(&enc_instance, &htim3);
-    encoder_position = enc_instance.position;
-    //    // encoder_velocity = enc_instance.velocity;
-    //
-    uart_buf_len =
-        sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
-    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    // timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
+    // update_encoder(&enc_instance, &htim3);
+    // encoder_position = enc_instance.position;
+    // //    // encoder_velocity = enc_instance.velocity;
+    // //
+    // uart_buf_len =
+    //     sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
+    // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
     // rotate(PI/2, encoder_position);
 
     // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
