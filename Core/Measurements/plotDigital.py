@@ -1,32 +1,3 @@
-# import pandas as pd
-# import matplotlib.pyplot as plt
-#
-# # scaling the time axis 1000 = ms
-# SCALE = 1000
-#
-# data_MCU = pd.read_csv('mvs01.csv',sep=',', skiprows=102)
-#
-#
-# digital_df = pd.DataFrame(data_MCU)                                        
-#
-# last_digital = digital_df.iloc[-1,0]
-# time = (digital_df.iloc[:,0]*SCALE/(last_digital+1))
-#
-# # info = meas_df.iloc[0,0] + "\n" + meas_df.iloc[1,0]
-#
-# fig, axs = plt.subplots(1)
-# fig.suptitle("Plot of sampled data")
-#
-# axs.plot(time, digital_df.iloc[:,1], color="blue", label="MVS Signal \n (µCU - digitalized)")
-# axs.set_xlabel("t [ms]")
-# axs.set_ylabel("U_i (0, 1)")
-#
-# axs.legend(loc = 0)                                                     
-# # plt.figtext(0.7, 0.17, info, ha="center", fontsize=7, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
-# plt.show()
-
-
-
 #!/usr/bin/env python
 
 import argparse
@@ -60,25 +31,21 @@ def plot_data(df, input_file):
         if nan.any() == True:
             print(f"{TerminalColors.ORANGE}Warning: {TerminalColors.ENDC}" + f"Missing values in following columns: \n{nan}")
 
-
-
-
         last_digital = dfnum.iloc[-1,0]
         time = (dfnum.iloc[:,0]*SCALE/(last_digital+1))
-
-        # info = meas_df.iloc[0,0] + "\n" + meas_df.iloc[1,0]
 
         fig, axs = plt.subplots(1)
         fig.suptitle('Plot from file: {}'.format(input_file))
 
-        axs.plot(time, dfnum.iloc[:,1], color="blue", label="MVS Signal \n (µCU - digitalized)")
+        axs.plot(time, dfnum.iloc[:,1], color="blue", label="MVS Signal \n (µC - digitalized)")
         axs.set_xlabel("t [ms]")
         axs.set_ylabel("U_i (0, 1)")
 
         axs.legend(loc = 0)                                                     
         # plt.figtext(0.7, 0.17, info, ha="center", fontsize=7, bbox={"facecolor":"orange", "alpha":0.5, "pad":5})
-        # plt.title('')
+        plt.title('Digitalized signal of last measurement')
         plt.show()
+        print(f"{TerminalColors.GREEN}PLOT SUCCEDED{TerminalColors.ENDC}")
 
 
     except Exception as e:
@@ -86,8 +53,8 @@ def plot_data(df, input_file):
 
 def main():
     # parser = argparse.ArgumentParser(description="Plot data from a .dat file.")
-    parser = argparse.ArgumentParser(description="Plot data from a .dat file.",
-                                     epilog="If no '-c' flag is provided, all column names will be printed.")
+    parser = argparse.ArgumentParser(description="Plot data from a .csv file.",
+                                     epilog="BB Schneider Test")
     parser.add_argument('-i', '--input', type=str, help="Input file (.csv)", required=True)
     args = parser.parse_args()
 
