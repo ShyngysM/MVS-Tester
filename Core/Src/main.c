@@ -34,6 +34,7 @@
 struct MeasureData {
   uint16_t signal[100000];
   int t_vibr_start;
+  int t_first_pulse;
   int t_end;
   int pulses;
   int htime;
@@ -65,8 +66,8 @@ encoder_instance enc_instance;
 
 const int PI = 445;
 const int SENSITIVITY = 5;
-// 50 char buffer to store our message
-char uart_buf[50];
+// 200 char buffer to store our message
+char uart_buf[200];
 int uart_buf_len;
 
 /* USER CODE END PV */
@@ -86,6 +87,7 @@ void analyse(struct MeasureData *);
 void uart_transmit_analog(void);
 void uart_transmit_digital(void);
 void uart_transmit_info(void);
+void uart_transmit_csv(void);
 
 /* USER CODE END PFP */
 
@@ -768,9 +770,17 @@ void analyse(struct MeasureData *s) {
   if (s->pulses == 0) {
     s->bad = true;
   }
+  // find and save first pulse after vibration
+  for (int i = s->t_vibr_start; i <= s->t_end; i++) {
+    if (s->signal[i] == 0) {
+      s->t_first_pulse = i;
+      break;
+    }
+  }
   // resolve the variables to human readable values
   s->htime = s->htime * SCALE / s->t_end;
   s->t_vibr_start = s->t_vibr_start * SCALE / s->t_end;
+  s->t_first_pulse = s->t_first_pulse * SCALE / s->t_end;
 }
 
 void uart_transmit_analog(void) {
@@ -798,6 +808,17 @@ void uart_transmit_info(void) {
   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
   uart_buf_len = sprintf(uart_buf, "bad state = %d; vibr = %d ms \r\n",
                          Meas.bad, Meas.t_vibr_start);
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+}
+
+void uart_transmit_csv(void) {
+
+  uart_buf_len = sprintf(uart_buf, "MeasurementNr.,Pulses,Hightime[ms],t_vibration[ms],t_responce[ms],bad[bool]\r\n");
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+
+  uart_buf_len = sprintf(uart_buf, "%d, %d, %d, %d, %d, %d\r\n",
+                         i+1, Meas.pulses, Meas.htime, Meas.t_vibr_start, Meas.t_first_pulse, Meas.bad);
+
   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 }
 
