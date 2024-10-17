@@ -113,14 +113,20 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     __HAL_RCC_ADC12_CLK_ENABLE();
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOF_CLK_ENABLE();
     /**ADC1 GPIO Configuration
-    PA0     ------> ADC1_INP16
     PA3     ------> ADC1_INP15
+    PF11     ------> ADC1_INP2
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_0|ANALOG_READ_PA3_Pin_Pin;
+    GPIO_InitStruct.Pin = ADC_MVS_PA3_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(ADC_MVS_PA3_GPIO_Port, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = ADC_LASER_PF11_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(ADC_LASER_PF11_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN ADC1_MspInit 1 */
 
@@ -146,10 +152,12 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     __HAL_RCC_ADC12_CLK_DISABLE();
 
     /**ADC1 GPIO Configuration
-    PA0     ------> ADC1_INP16
     PA3     ------> ADC1_INP15
+    PF11     ------> ADC1_INP2
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_0|ANALOG_READ_PA3_Pin_Pin);
+    HAL_GPIO_DeInit(ADC_MVS_PA3_GPIO_Port, ADC_MVS_PA3_Pin);
+
+    HAL_GPIO_DeInit(ADC_LASER_PF11_GPIO_Port, ADC_LASER_PF11_Pin);
 
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
 
@@ -180,7 +188,7 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef* htim_encoder)
     PA6     ------> TIM3_CH1
     PA7     ------> TIM3_CH2
     */
-    GPIO_InitStruct.Pin = encoder1PA6_Pin|encoder2PA7_Pin;
+    GPIO_InitStruct.Pin = ENCODER1_PA6_Pin|ENCODER2_PA7_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -213,20 +221,6 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 
   /* USER CODE END TIM16_MspInit 1 */
   }
-  else if(htim_base->Instance==TIM17)
-  {
-  /* USER CODE BEGIN TIM17_MspInit 0 */
-
-  /* USER CODE END TIM17_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_TIM17_CLK_ENABLE();
-    /* TIM17 interrupt Init */
-    HAL_NVIC_SetPriority(TIM17_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(TIM17_IRQn);
-  /* USER CODE BEGIN TIM17_MspInit 1 */
-
-  /* USER CODE END TIM17_MspInit 1 */
-  }
 
 }
 
@@ -250,7 +244,7 @@ void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* htim_encoder)
     PA6     ------> TIM3_CH1
     PA7     ------> TIM3_CH2
     */
-    HAL_GPIO_DeInit(GPIOA, encoder1PA6_Pin|encoder2PA7_Pin);
+    HAL_GPIO_DeInit(GPIOA, ENCODER1_PA6_Pin|ENCODER2_PA7_Pin);
 
   /* USER CODE BEGIN TIM3_MspDeInit 1 */
 
@@ -277,20 +271,6 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
   /* USER CODE BEGIN TIM16_MspDeInit 1 */
 
   /* USER CODE END TIM16_MspDeInit 1 */
-  }
-  else if(htim_base->Instance==TIM17)
-  {
-  /* USER CODE BEGIN TIM17_MspDeInit 0 */
-
-  /* USER CODE END TIM17_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_TIM17_CLK_DISABLE();
-
-    /* TIM17 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(TIM17_IRQn);
-  /* USER CODE BEGIN TIM17_MspDeInit 1 */
-
-  /* USER CODE END TIM17_MspDeInit 1 */
   }
 
 }
