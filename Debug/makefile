@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (11.3.rel1)
+# Toolchain: GNU Tools for STM32 (12.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -60,8 +60,8 @@ all: main-build
 main-build: h7a3zi_combine2.elf secondary-outputs
 
 # Tool invocations
-h7a3zi_combine2.elf h7a3zi_combine2.map: $(OBJS) $(USER_OBJS) /home/archingis/dev/stm32/h7a3zi_combine2/STM32H7A3ZITXQ_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "h7a3zi_combine2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/archingis/dev/stm32/h7a3zi_combine2/STM32H7A3ZITXQ_FLASH.ld" --specs=nosys.specs -Wl,-Map="h7a3zi_combine2.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+h7a3zi_combine2.elf h7a3zi_combine2.map: $(OBJS) $(USER_OBJS) /home/sm/dev/stm32/h7a3zi_combine2/STM32H7A3ZITXQ_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "h7a3zi_combine2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"/home/sm/dev/stm32/h7a3zi_combine2/STM32H7A3ZITXQ_FLASH.ld" --specs=nosys.specs -Wl,-Map="h7a3zi_combine2.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

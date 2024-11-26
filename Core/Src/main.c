@@ -25,8 +25,9 @@
 /* USER CODE BEGIN Includes */
 #include "../Inc/motor_encoder.h"
 #include "../Inc/rotate.h"
-#include "../Inc/photosensor.h"
+// #include "../Inc/photosensor.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 /* USER CODE END Includes */
@@ -146,41 +147,84 @@ int main(void)
   /////////////////START/////////////////////////
 
   // pump on
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  HAL_Delay(3000);
-  laserstate = photosence(lasertrigger, &hadc1);
+  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+  
+  // INIT Encoder
+  timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
+  update_encoder(&enc_instance, &htim3);
+  encoder_position = enc_instance.position;
+  uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  
+  
+  HAL_Delay(1000);
+  // laserstate = photosence(lasertrigger, &hadc1);
   // if (laserstate == 0) {
   //   measure();
   //   analyse();
   //   uart_transmit_csv();
   // }
   // else {
-  //   rotate(0,  enc_position);
-  // }
-
-  measure(&Meas);
-  // uart_transmit_analog();
-  analyse(&Meas);
-  // uart_transmit_digital();
-  uart_transmit_info();
-  while (Meas.bad == true) {
+  int32_t degree = PI;
+  while (encoder_position <= degree){
     timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
     update_encoder(&enc_instance, &htim3);
     encoder_position = enc_instance.position;
 
-    if (encoder_position == PI/2 + PI/4 ) {
-      // rotate(-PI/2, encoder_position);
-      break;
+    if (encoder_position  > degree ) {
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
     }
-    else {
-      // rotate 90°+ 45°
-      rotate(-PI/2, encoder_position);
+    if (encoder_position < degree ) {
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
     }
+    if (encoder_position == degree ) {
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    }
+    // rotate(PI,  encoder_position);
+    uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+
   }
+    uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+
+  // for (int i = 0; i < 10; i++) {
+  //   measure(&Meas);
+  //   // uart_transmit_analog();
+  //   analyse(&Meas);
+  //   // uart_transmit_digital();
+  //   uart_transmit_info();
+  // 
+  // }
+  
+  // measure(&Meas);
+  // analyse(&Meas);
+  // uart_transmit_info();
+
+
+  // while (Meas.bad == true) {
+  //   timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
+  //   update_encoder(&enc_instance, &htim3);
+  //   encoder_position = enc_instance.position;
+  //
+  //   if (encoder_position == PI/2 + PI/4 ) {
+  //     // rotate(-PI/2, encoder_position);
+  //     break;
+  //   }
+  //   else {
+  //     // rotate 90°+ 45°
+  //     rotate(-PI/2, encoder_position);
+  //   }
+  // }
 
 
 
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+  // pump off
+  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+
 
   // if (Meas.bad == false && Meas.pulses >= SENSITIVITY) {
   //   // rotate 180
@@ -233,8 +277,11 @@ int main(void)
     // timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
     // update_encoder(&enc_instance, &htim3);
     // encoder_position = enc_instance.position;
-    // //    // encoder_velocity = enc_instance.velocity;
-    // //
+    // // //    // encoder_velocity = enc_instance.velocity;
+    // rotate(PI, encoder_position);
+    // measure(&Meas);
+    // analyse(&Meas);
+    // uart_transmit_info();
     // uart_buf_len =
     //     sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
     // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
@@ -651,7 +698,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-// calling an ISR for STEPPER
+// calling an ISR for STEPPER (not used, not deleting dunno why)
 // void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 //   STEPPER_TMR_OVF_ISR(htim);
 // }
@@ -830,3 +877,5 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
+
