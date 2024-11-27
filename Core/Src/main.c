@@ -166,10 +166,7 @@ int main(void)
   // }
   // else {
   int32_t degree = PI;
-  while (encoder_position <= degree){
-    timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
-    update_encoder(&enc_instance, &htim3);
-    encoder_position = enc_instance.position;
+  while (encoder_position <= degree ){
 
     if (encoder_position  > degree ) {
      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
@@ -182,8 +179,12 @@ int main(void)
     if (encoder_position == degree ) {
      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+     break;
     }
-    // rotate(PI,  encoder_position);
+    timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
+    update_encoder(&enc_instance, &htim3);
+    encoder_position = enc_instance.position;
+
     uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
     HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 

@@ -33,15 +33,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  14 .debug_macro  00032a16  00000000  00000000  00027de5  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_line   00018d31  00000000  00000000  0005a7fb  2**0
+ 15 .debug_line   00018d32  00000000  00000000  0005a7fb  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_str    00153875  00000000  00000000  0007352c  2**0
+ 16 .debug_str    00153875  00000000  00000000  0007352d  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .comment      00000043  00000000  00000000  001c6da1  2**0
+ 17 .comment      00000043  00000000  00000000  001c6da2  2**0
                   CONTENTS, READONLY
- 18 .debug_frame  00005d68  00000000  00000000  001c6de4  2**2
+ 18 .debug_frame  00005d68  00000000  00000000  001c6de8  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_line_str 00000052  00000000  00000000  001ccb4c  2**0
+ 19 .debug_line_str 00000052  00000000  00000000  001ccb50  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -493,130 +493,131 @@ int main(void)
   int32_t degree = PI;
  80006f0:	f240 13bd 	movw	r3, #445	@ 0x1bd
  80006f4:	607b      	str	r3, [r7, #4]
-  while (encoder_position <= degree){
- 80006f6:	e04d      	b.n	8000794 <main+0x114>
-    timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
- 80006f8:	4b33      	ldr	r3, [pc, #204]	@ (80007c8 <main+0x148>)
- 80006fa:	681b      	ldr	r3, [r3, #0]
- 80006fc:	6a5b      	ldr	r3, [r3, #36]	@ 0x24
- 80006fe:	b29a      	uxth	r2, r3
- 8000700:	4b32      	ldr	r3, [pc, #200]	@ (80007cc <main+0x14c>)
- 8000702:	801a      	strh	r2, [r3, #0]
-    update_encoder(&enc_instance, &htim3);
- 8000704:	4930      	ldr	r1, [pc, #192]	@ (80007c8 <main+0x148>)
- 8000706:	4832      	ldr	r0, [pc, #200]	@ (80007d0 <main+0x150>)
- 8000708:	f000 fb7c 	bl	8000e04 <update_encoder>
-    encoder_position = enc_instance.position;
- 800070c:	4b30      	ldr	r3, [pc, #192]	@ (80007d0 <main+0x150>)
- 800070e:	e9d3 2302 	ldrd	r2, r3, [r3, #8]
- 8000712:	4b30      	ldr	r3, [pc, #192]	@ (80007d4 <main+0x154>)
- 8000714:	601a      	str	r2, [r3, #0]
+  while (encoder_position <= degree ){
+ 80006f6:	e04e      	b.n	8000796 <main+0x116>
 
     if (encoder_position  > degree ) {
+ 80006f8:	4b36      	ldr	r3, [pc, #216]	@ (80007d4 <main+0x154>)
+ 80006fa:	681b      	ldr	r3, [r3, #0]
+ 80006fc:	687a      	ldr	r2, [r7, #4]
+ 80006fe:	429a      	cmp	r2, r3
+ 8000700:	da09      	bge.n	8000716 <main+0x96>
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+ 8000702:	2201      	movs	r2, #1
+ 8000704:	2180      	movs	r1, #128	@ 0x80
+ 8000706:	4838      	ldr	r0, [pc, #224]	@ (80007e8 <main+0x168>)
+ 8000708:	f002 f932 	bl	8002970 <HAL_GPIO_WritePin>
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+ 800070c:	2200      	movs	r2, #0
+ 800070e:	2140      	movs	r1, #64	@ 0x40
+ 8000710:	4835      	ldr	r0, [pc, #212]	@ (80007e8 <main+0x168>)
+ 8000712:	f002 f92d 	bl	8002970 <HAL_GPIO_WritePin>
+    }
+    if (encoder_position < degree ) {
  8000716:	4b2f      	ldr	r3, [pc, #188]	@ (80007d4 <main+0x154>)
  8000718:	681b      	ldr	r3, [r3, #0]
  800071a:	687a      	ldr	r2, [r7, #4]
  800071c:	429a      	cmp	r2, r3
- 800071e:	da09      	bge.n	8000734 <main+0xb4>
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
- 8000720:	2201      	movs	r2, #1
+ 800071e:	dd09      	ble.n	8000734 <main+0xb4>
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+ 8000720:	2200      	movs	r2, #0
  8000722:	2180      	movs	r1, #128	@ 0x80
  8000724:	4830      	ldr	r0, [pc, #192]	@ (80007e8 <main+0x168>)
  8000726:	f002 f923 	bl	8002970 <HAL_GPIO_WritePin>
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
- 800072a:	2200      	movs	r2, #0
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+ 800072a:	2201      	movs	r2, #1
  800072c:	2140      	movs	r1, #64	@ 0x40
  800072e:	482e      	ldr	r0, [pc, #184]	@ (80007e8 <main+0x168>)
  8000730:	f002 f91e 	bl	8002970 <HAL_GPIO_WritePin>
     }
-    if (encoder_position < degree ) {
+    if (encoder_position == degree ) {
  8000734:	4b27      	ldr	r3, [pc, #156]	@ (80007d4 <main+0x154>)
  8000736:	681b      	ldr	r3, [r3, #0]
  8000738:	687a      	ldr	r2, [r7, #4]
  800073a:	429a      	cmp	r2, r3
- 800073c:	dd09      	ble.n	8000752 <main+0xd2>
+ 800073c:	d10a      	bne.n	8000754 <main+0xd4>
      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
  800073e:	2200      	movs	r2, #0
  8000740:	2180      	movs	r1, #128	@ 0x80
  8000742:	4829      	ldr	r0, [pc, #164]	@ (80007e8 <main+0x168>)
  8000744:	f002 f914 	bl	8002970 <HAL_GPIO_WritePin>
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
- 8000748:	2201      	movs	r2, #1
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+ 8000748:	2200      	movs	r2, #0
  800074a:	2140      	movs	r1, #64	@ 0x40
  800074c:	4826      	ldr	r0, [pc, #152]	@ (80007e8 <main+0x168>)
  800074e:	f002 f90f 	bl	8002970 <HAL_GPIO_WritePin>
+     break;
+ 8000752:	e025      	b.n	80007a0 <main+0x120>
     }
-    if (encoder_position == degree ) {
- 8000752:	4b20      	ldr	r3, [pc, #128]	@ (80007d4 <main+0x154>)
- 8000754:	681b      	ldr	r3, [r3, #0]
- 8000756:	687a      	ldr	r2, [r7, #4]
- 8000758:	429a      	cmp	r2, r3
- 800075a:	d109      	bne.n	8000770 <main+0xf0>
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
- 800075c:	2200      	movs	r2, #0
- 800075e:	2180      	movs	r1, #128	@ 0x80
- 8000760:	4821      	ldr	r0, [pc, #132]	@ (80007e8 <main+0x168>)
- 8000762:	f002 f905 	bl	8002970 <HAL_GPIO_WritePin>
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
- 8000766:	2200      	movs	r2, #0
- 8000768:	2140      	movs	r1, #64	@ 0x40
- 800076a:	481f      	ldr	r0, [pc, #124]	@ (80007e8 <main+0x168>)
- 800076c:	f002 f900 	bl	8002970 <HAL_GPIO_WritePin>
-    }
-    // rotate(PI,  encoder_position);
+    timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
+ 8000754:	4b1c      	ldr	r3, [pc, #112]	@ (80007c8 <main+0x148>)
+ 8000756:	681b      	ldr	r3, [r3, #0]
+ 8000758:	6a5b      	ldr	r3, [r3, #36]	@ 0x24
+ 800075a:	b29a      	uxth	r2, r3
+ 800075c:	4b1b      	ldr	r3, [pc, #108]	@ (80007cc <main+0x14c>)
+ 800075e:	801a      	strh	r2, [r3, #0]
+    update_encoder(&enc_instance, &htim3);
+ 8000760:	4919      	ldr	r1, [pc, #100]	@ (80007c8 <main+0x148>)
+ 8000762:	481b      	ldr	r0, [pc, #108]	@ (80007d0 <main+0x150>)
+ 8000764:	f000 fb4e 	bl	8000e04 <update_encoder>
+    encoder_position = enc_instance.position;
+ 8000768:	4b19      	ldr	r3, [pc, #100]	@ (80007d0 <main+0x150>)
+ 800076a:	e9d3 2302 	ldrd	r2, r3, [r3, #8]
+ 800076e:	4b19      	ldr	r3, [pc, #100]	@ (80007d4 <main+0x154>)
+ 8000770:	601a      	str	r2, [r3, #0]
+
     uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
- 8000770:	4b18      	ldr	r3, [pc, #96]	@ (80007d4 <main+0x154>)
- 8000772:	681b      	ldr	r3, [r3, #0]
- 8000774:	461a      	mov	r2, r3
- 8000776:	4918      	ldr	r1, [pc, #96]	@ (80007d8 <main+0x158>)
- 8000778:	4818      	ldr	r0, [pc, #96]	@ (80007dc <main+0x15c>)
- 800077a:	f007 fa77 	bl	8007c6c <siprintf>
- 800077e:	4603      	mov	r3, r0
- 8000780:	4a17      	ldr	r2, [pc, #92]	@ (80007e0 <main+0x160>)
- 8000782:	6013      	str	r3, [r2, #0]
+ 8000772:	4b18      	ldr	r3, [pc, #96]	@ (80007d4 <main+0x154>)
+ 8000774:	681b      	ldr	r3, [r3, #0]
+ 8000776:	461a      	mov	r2, r3
+ 8000778:	4917      	ldr	r1, [pc, #92]	@ (80007d8 <main+0x158>)
+ 800077a:	4818      	ldr	r0, [pc, #96]	@ (80007dc <main+0x15c>)
+ 800077c:	f007 fa76 	bl	8007c6c <siprintf>
+ 8000780:	4603      	mov	r3, r0
+ 8000782:	4a17      	ldr	r2, [pc, #92]	@ (80007e0 <main+0x160>)
+ 8000784:	6013      	str	r3, [r2, #0]
     HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
- 8000784:	4b16      	ldr	r3, [pc, #88]	@ (80007e0 <main+0x160>)
- 8000786:	681b      	ldr	r3, [r3, #0]
- 8000788:	b29a      	uxth	r2, r3
- 800078a:	2364      	movs	r3, #100	@ 0x64
- 800078c:	4913      	ldr	r1, [pc, #76]	@ (80007dc <main+0x15c>)
- 800078e:	4815      	ldr	r0, [pc, #84]	@ (80007e4 <main+0x164>)
- 8000790:	f006 f854 	bl	800683c <HAL_UART_Transmit>
-  while (encoder_position <= degree){
- 8000794:	4b0f      	ldr	r3, [pc, #60]	@ (80007d4 <main+0x154>)
- 8000796:	681b      	ldr	r3, [r3, #0]
- 8000798:	687a      	ldr	r2, [r7, #4]
- 800079a:	429a      	cmp	r2, r3
- 800079c:	daac      	bge.n	80006f8 <main+0x78>
+ 8000786:	4b16      	ldr	r3, [pc, #88]	@ (80007e0 <main+0x160>)
+ 8000788:	681b      	ldr	r3, [r3, #0]
+ 800078a:	b29a      	uxth	r2, r3
+ 800078c:	2364      	movs	r3, #100	@ 0x64
+ 800078e:	4913      	ldr	r1, [pc, #76]	@ (80007dc <main+0x15c>)
+ 8000790:	4814      	ldr	r0, [pc, #80]	@ (80007e4 <main+0x164>)
+ 8000792:	f006 f853 	bl	800683c <HAL_UART_Transmit>
+  while (encoder_position <= degree ){
+ 8000796:	4b0f      	ldr	r3, [pc, #60]	@ (80007d4 <main+0x154>)
+ 8000798:	681b      	ldr	r3, [r3, #0]
+ 800079a:	687a      	ldr	r2, [r7, #4]
+ 800079c:	429a      	cmp	r2, r3
+ 800079e:	daab      	bge.n	80006f8 <main+0x78>
 
   }
     uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
- 800079e:	4b0d      	ldr	r3, [pc, #52]	@ (80007d4 <main+0x154>)
- 80007a0:	681b      	ldr	r3, [r3, #0]
- 80007a2:	461a      	mov	r2, r3
- 80007a4:	490c      	ldr	r1, [pc, #48]	@ (80007d8 <main+0x158>)
- 80007a6:	480d      	ldr	r0, [pc, #52]	@ (80007dc <main+0x15c>)
- 80007a8:	f007 fa60 	bl	8007c6c <siprintf>
- 80007ac:	4603      	mov	r3, r0
- 80007ae:	4a0c      	ldr	r2, [pc, #48]	@ (80007e0 <main+0x160>)
- 80007b0:	6013      	str	r3, [r2, #0]
+ 80007a0:	4b0c      	ldr	r3, [pc, #48]	@ (80007d4 <main+0x154>)
+ 80007a2:	681b      	ldr	r3, [r3, #0]
+ 80007a4:	461a      	mov	r2, r3
+ 80007a6:	490c      	ldr	r1, [pc, #48]	@ (80007d8 <main+0x158>)
+ 80007a8:	480c      	ldr	r0, [pc, #48]	@ (80007dc <main+0x15c>)
+ 80007aa:	f007 fa5f 	bl	8007c6c <siprintf>
+ 80007ae:	4603      	mov	r3, r0
+ 80007b0:	4a0b      	ldr	r2, [pc, #44]	@ (80007e0 <main+0x160>)
+ 80007b2:	6013      	str	r3, [r2, #0]
     HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
- 80007b2:	4b0b      	ldr	r3, [pc, #44]	@ (80007e0 <main+0x160>)
- 80007b4:	681b      	ldr	r3, [r3, #0]
- 80007b6:	b29a      	uxth	r2, r3
- 80007b8:	2364      	movs	r3, #100	@ 0x64
- 80007ba:	4908      	ldr	r1, [pc, #32]	@ (80007dc <main+0x15c>)
- 80007bc:	4809      	ldr	r0, [pc, #36]	@ (80007e4 <main+0x164>)
- 80007be:	f006 f83d 	bl	800683c <HAL_UART_Transmit>
+ 80007b4:	4b0a      	ldr	r3, [pc, #40]	@ (80007e0 <main+0x160>)
+ 80007b6:	681b      	ldr	r3, [r3, #0]
+ 80007b8:	b29a      	uxth	r2, r3
+ 80007ba:	2364      	movs	r3, #100	@ 0x64
+ 80007bc:	4907      	ldr	r1, [pc, #28]	@ (80007dc <main+0x15c>)
+ 80007be:	4809      	ldr	r0, [pc, #36]	@ (80007e4 <main+0x164>)
+ 80007c0:	f006 f83c 	bl	800683c <HAL_UART_Transmit>
   // Sequence for encoder motor
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
- 80007c2:	bf00      	nop
- 80007c4:	e7fd      	b.n	80007c2 <main+0x142>
- 80007c6:	bf00      	nop
+ 80007c4:	bf00      	nop
+ 80007c6:	e7fd      	b.n	80007c4 <main+0x144>
  80007c8:	240000e0 	.word	0x240000e0
  80007cc:	240002f8 	.word	0x240002f8
  80007d0:	24000210 	.word	0x24000210
