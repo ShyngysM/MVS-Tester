@@ -4,12 +4,13 @@
 #include "stdint.h"
 #include <stdbool.h>
 
-typedef struct {
-  uint16_t arr[10];
-  bool state;
-  int trigger;
-} photosensor_instance;
+// typedef struct {
+//   // uint16_t laser_signal[10];
+//   bool state;
+//   int trigger;
+// } photosensor_instance;
+// extern bool ph_state;
 
-bool photosence(int trigger, ADC_HandleTypeDef *hadc);
+bool photosence(int trigger_value, ADC_HandleTypeDef *hadc);
 
 #endif // !INC_PHOTOSENSOR_H

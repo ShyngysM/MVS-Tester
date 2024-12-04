@@ -24,8 +24,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../Inc/motor_encoder.h"
-#include "../Inc/rotate.h"
-// #include "../Inc/photosensor.h"
+// #include "../Inc/rotate.h"
+#include "../Inc/photosensor.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -43,8 +43,8 @@ struct MeasureData {
   int htime;
   bool bad;
 } Meas;
-bool laserstate;
-int lasertrigger = 100;
+
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -58,6 +58,7 @@ int lasertrigger = 100;
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+ADC_HandleTypeDef hadc2;
 
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim16;
@@ -77,15 +78,18 @@ int uart_buf_len;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void PeriphCommonClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_HS_USB_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_ADC2_Init(void);
 /* USER CODE BEGIN PFP */
 void measure(struct MeasureData *);
 void analyse(struct MeasureData *);
+void rotate(int degree);
 void uart_transmit_analog(void);
 void uart_transmit_digital(void);
 void uart_transmit_info(void);
@@ -98,6 +102,10 @@ void uart_transmit_csv(void);
 int16_t encoder_velocity;
 int32_t encoder_position;
 uint16_t timer_counter;
+
+// true means MVS is detected
+bool ph_state = false;
+int ph_trigger = 10000;
 
 /* USER CODE END 0 */
 
@@ -124,6 +132,9 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
+/* Configure the peripherals common clocks */
+  PeriphCommonClock_Config();
+
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -135,62 +146,36 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM16_Init();
   MX_TIM3_Init();
+  MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
 
-  /* __STEPPER CONTROL BLOCK BEGIN__ */
+
+  /***************************************************** TEST AREA *****************************************************/
 
 
-  /* test area */
-  //  don't forget to init timer16 for counting 1 sec and timer17 with ISR for
-  //  Stepper
-
-  /////////////////START/////////////////////////
-
-  // pump on
+  // PUMP ON!
   // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
   
   // INIT Encoder
   timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
   update_encoder(&enc_instance, &htim3);
   encoder_position = enc_instance.position;
-  uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  // uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
+  // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
   
+  // HAL_Delay(1000); // a small delay for pump to get on
+
+  // ph_state = photosence(ph_trigger, &hadc1);
   
-  HAL_Delay(1000);
-  // laserstate = photosence(lasertrigger, &hadc1);
   // if (laserstate == 0) {
   //   measure();
   //   analyse();
   //   uart_transmit_csv();
   // }
   // else {
-  int32_t degree = PI;
-  while (encoder_position <= degree ){
 
-    if (encoder_position  > degree ) {
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    }
-    if (encoder_position < degree ) {
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    }
-    if (encoder_position == degree ) {
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-     break;
-    }
-    timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
-    update_encoder(&enc_instance, &htim3);
-    encoder_position = enc_instance.position;
-
-    uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
-    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-
-  }
-    uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
-    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    // uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
+    // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
   // for (int i = 0; i < 10; i++) {
   //   measure(&Meas);
@@ -275,34 +260,40 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1) {
 
-    // timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
-    // update_encoder(&enc_instance, &htim3);
-    // encoder_position = enc_instance.position;
-    // // //    // encoder_velocity = enc_instance.velocity;
-    // rotate(PI, encoder_position);
-    // measure(&Meas);
-    // analyse(&Meas);
-    // uart_transmit_info();
-    // uart_buf_len =
-    //     sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
-    // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-    // rotate(PI/2, encoder_position);
+    ph_state = photosence(ph_trigger, &hadc2);
 
-    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+    // PUMP ON!
 
-    // if (encoder_position > 640) {
-    //   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
-    //   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    // }
-    // if (encoder_position <= 0) {
-    //   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-    //   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    // }
-    // if (encoder_position == 320) {
-    //   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-    //   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    // }
+    if (ph_state == true) {
+      measure();
+      analyse();
+      uart_transmit_info();
+
+      if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
+        rotate(PI)
+        measure();
+        analyse();
+        uart_transmit_info();
+
+        if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
+        rotate(GOOD);
+        // PUMP OFF!
+        }else {
+          uart_transmit_info();
+          rotate(GARBAGE);
+          // PUMP OFF!
+        }
+
+      }else {
+        uart_transmit_info();
+        rotate(GARBAGE);
+        // PUMP OFF!
+      }
+
+      rotate(START);
+
+    }
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -373,6 +364,32 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief Peripherals Common Clock Configuration
+  * @retval None
+  */
+void PeriphCommonClock_Config(void)
+{
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  /** Initializes the peripherals clock
+  */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInitStruct.PLL2.PLL2M = 1;
+  PeriphClkInitStruct.PLL2.PLL2N = 16;
+  PeriphClkInitStruct.PLL2.PLL2P = 4;
+  PeriphClkInitStruct.PLL2.PLL2Q = 2;
+  PeriphClkInitStruct.PLL2.PLL2R = 2;
+  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_3;
+  PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
+  PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
+  PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
   * @brief ADC1 Initialization Function
   * @param None
   * @retval None
@@ -437,6 +454,65 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief ADC2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC2_Init(void)
+{
+
+  /* USER CODE BEGIN ADC2_Init 0 */
+
+  /* USER CODE END ADC2_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC2_Init 1 */
+
+  /* USER CODE END ADC2_Init 1 */
+
+  /** Common config
+  */
+  hadc2.Instance = ADC2;
+  hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+  hadc2.Init.Resolution = ADC_RESOLUTION_16B;
+  hadc2.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc2.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc2.Init.LowPowerAutoWait = DISABLE;
+  hadc2.Init.ContinuousConvMode = DISABLE;
+  hadc2.Init.NbrOfConversion = 1;
+  hadc2.Init.DiscontinuousConvMode = DISABLE;
+  hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc2.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
+  hadc2.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+  hadc2.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
+  hadc2.Init.OversamplingMode = DISABLE;
+  if (HAL_ADC_Init(&hadc2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_6;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  sConfig.OffsetSignedSaturation = DISABLE;
+  if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC2_Init 2 */
+
+  /* USER CODE END ADC2_Init 2 */
 
 }
 
@@ -804,6 +880,29 @@ void analyse(struct MeasureData *s) {
   s->t_first_pulse = s->t_first_pulse * SCALE / s->t_end;
 }
 
+void rotate(int degree){
+  while (encoder_position <= degree ){
+
+    if (encoder_position  > degree ) {
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    }
+    if (encoder_position < degree ) {
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+    }
+    if (encoder_position == degree ) {
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+     break;
+    }
+    timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
+    update_encoder(&enc_instance, &htim3);
+    encoder_position = enc_instance.position;
+
+  }
+}
+
 void uart_transmit_analog(void) {
   /* Transmit an array with ANALOG data via uart */
   for (int j = 0; j < Meas.t_end; j++) {
@@ -878,5 +977,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-

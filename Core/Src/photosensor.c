@@ -1,22 +1,21 @@
 #include "../Inc/photosensor.h"
 
-// bool photosence(int trigger, ADC_HandleTypeDef hadc){
-//   uint16_t arr[10];
-//   for (int i = 0; i < 10; i++) {
-//     // ADC routine
-//     HAL_ADC_Start(&hadc1);
-//     HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-//     arr[i] = HAL_ADC_GetValue(&hadc1);
-//   }
-//   
-//   for (int j = 0; j < 10; j++) {
-//     if (arr[j] < trigger) {
-//       state = true;
-//       break;
-//     }
-//     else {
-//       state = false;
-//     }
-//   }
-//   return state;
-// }
+bool photosence(int trigger, ADC_HandleTypeDef*hadc){
+  // uint16_t arr[10];
+  int raw = 0;
+  bool state;
+  for (int i = 0; i < 100; i++) {
+    // ADC routine
+    HAL_ADC_Start(hadc);
+    HAL_ADC_PollForConversion(hadc, HAL_MAX_DELAY);
+    raw = HAL_ADC_GetValue(hadc);
+    if (raw > trigger) {
+      state = false; //Nothing on laser path!
+      break;
+    }
+    else {
+      state = true; //MVS is on laser path!
+    }
+  }
+  return state;
+}

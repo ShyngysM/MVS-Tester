@@ -81,6 +81,8 @@ void Error_Handler(void);
 #define LD1_GPIO_Port GPIOB
 #define ADC_LASER_PF11_Pin GPIO_PIN_11
 #define ADC_LASER_PF11_GPIO_Port GPIOF
+#define ADC2_PHOTOSEN_PF14_Pin GPIO_PIN_14
+#define ADC2_PHOTOSEN_PF14_GPIO_Port GPIOF
 #define LD3_Pin GPIO_PIN_14
 #define LD3_GPIO_Port GPIOB
 #define STLINK_RX_Pin GPIO_PIN_8
