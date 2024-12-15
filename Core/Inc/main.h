@@ -49,6 +49,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -83,6 +85,8 @@ void Error_Handler(void);
 #define ADC_LASER_PF11_GPIO_Port GPIOF
 #define ADC2_PHOTOSEN_PF14_Pin GPIO_PIN_14
 #define ADC2_PHOTOSEN_PF14_GPIO_Port GPIOF
+#define ENCMOTOR_PWM_PE13_Pin GPIO_PIN_13
+#define ENCMOTOR_PWM_PE13_GPIO_Port GPIOE
 #define LD3_Pin GPIO_PIN_14
 #define LD3_GPIO_Port GPIOB
 #define STLINK_RX_Pin GPIO_PIN_8

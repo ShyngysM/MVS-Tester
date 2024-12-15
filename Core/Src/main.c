@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,6 +61,7 @@ struct MeasureData {
 ADC_HandleTypeDef hadc1;
 ADC_HandleTypeDef hadc2;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim16;
 
@@ -68,7 +70,7 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 encoder_instance enc_instance;
 
-const int PI = 445;
+const int32_t PI = 445;
 const int SENSITIVITY = 5;
 // 200 char buffer to store our message
 char uart_buf[200];
@@ -86,10 +88,11 @@ static void MX_ADC1_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_ADC2_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 void measure(struct MeasureData *);
 void analyse(struct MeasureData *);
-void rotate(int degree);
+void rotate(int32_t degree);
 void uart_transmit_analog(void);
 void uart_transmit_digital(void);
 void uart_transmit_info(void);
@@ -115,6 +118,7 @@ int ph_trigger = 10000;
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -132,7 +136,7 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
-/* Configure the peripherals common clocks */
+  /* Configure the peripherals common clocks */
   PeriphCommonClock_Config();
 
   /* USER CODE BEGIN SysInit */
@@ -147,152 +151,105 @@ int main(void)
   MX_TIM16_Init();
   MX_TIM3_Init();
   MX_ADC2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+
+  // Enable PWM channel
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  // INIT Encoder
+  reset_encoder(&enc_instance);
+  // DutyCycle = CCR/ARR
+  // 0.25 = CCR / 65535
+  // CCR = x% * 65535
+  // Writing a CCR register of timer 1, controlling the duty cycle of PWM 
+  // a value of 8000 is pretty decent
+  TIM1->CCR3 = 0.12*65535;
 
 
   /***************************************************** TEST AREA *****************************************************/
 
 
+  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+
+  // FUN STUFF!
+  // int32_t CH3_DC = 0;
+  // while (CH3_DC < 65535) {
+  //     TIM1->CCR3 = CH3_DC;
+  //     CH3_DC += 70;
+  //     HAL_Delay(1);
+  // }
+  //  while(CH3_DC > 0) {
+  //     TIM1->CCR3 = CH3_DC;
+  //     CH3_DC -= 70;
+  //     HAL_Delay(1);
+  // }
+
+
+
   // PUMP ON!
   // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  
-  // INIT Encoder
-  timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
-  update_encoder(&enc_instance, &htim3);
-  encoder_position = enc_instance.position;
-  // uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
-  // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  
   // HAL_Delay(1000); // a small delay for pump to get on
 
-  // ph_state = photosence(ph_trigger, &hadc1);
+
   
-  // if (laserstate == 0) {
-  //   measure();
-  //   analyse();
-  //   uart_transmit_csv();
-  // }
-  // else {
-
-    // uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
-    // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-
-  // for (int i = 0; i < 10; i++) {
-  //   measure(&Meas);
-  //   // uart_transmit_analog();
-  //   analyse(&Meas);
-  //   // uart_transmit_digital();
-  //   uart_transmit_info();
-  // 
-  // }
-  
-  // measure(&Meas);
-  // analyse(&Meas);
-  // uart_transmit_info();
 
 
-  // while (Meas.bad == true) {
-  //   timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
-  //   update_encoder(&enc_instance, &htim3);
-  //   encoder_position = enc_instance.position;
-  //
-  //   if (encoder_position == PI/2 + PI/4 ) {
-  //     // rotate(-PI/2, encoder_position);
-  //     break;
-  //   }
-  //   else {
-  //     // rotate 90°+ 45°
-  //     rotate(-PI/2, encoder_position);
-  //   }
-  // }
-
-
-
-  // pump off
+  // PUMP OFF!
   // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
 
-  // if (Meas.bad == false && Meas.pulses >= SENSITIVITY) {
-  //   // rotate 180
-  //   STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI, DIR_CW);
-  //   HAL_Delay(1500);
-  //   measure(&Meas);
-  //   analyse(&Meas);
-  //   uart_transmit_info();
-
-  //   if (Meas.bad == false && Meas.pulses >= SENSITIVITY) {
-  //     // rotate -45° and reset pump
-  //     STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI / 4, DIR_CCW);
-  //     HAL_Delay(1500);
-  //     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-  //     HAL_Delay(1000);
-  //     // rotate to 0°
-  //     STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI * 3 / 4, DIR_CCW);
-  //   } else {
-  //     // rotate +45° and reset pump
-  //     STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI / 4, DIR_CW);
-  //     HAL_Delay(1500);
-  //     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-  //     HAL_Delay(1000);
-  //     // rotate to 0°
-  //     STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI * 3 / 4, DIR_CW);
-  //   }
-  // } else {
-  //   // rotate 180°
-  //   STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI, DIR_CW);
-  //   HAL_Delay(1500);
-  //   // rotate +45° and reset pump
-  //   STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI / 4, DIR_CW);
-  //   HAL_Delay(1500);
-  //   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-  //   HAL_Delay(1000);
-  //   // rotate to 0°
-  //   STEPPER_Step_NonBlocking(STEPPER_MOTOR1, PI * 3 / 4, DIR_CW);
-  // }
-  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  // HAL_Delay(7000);
-  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-
-  // Sequence for encoder motor
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
+    uart_buf_len = sprintf(uart_buf, "Contreclockwise to 180° %\r\n");
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    HAL_Delay(1000);
+    rotate(PI);
+    HAL_Delay(1000);
 
-    ph_state = photosence(ph_trigger, &hadc2);
+    uart_buf_len = sprintf(uart_buf, "Clockwise to 10° %\r\n");
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    HAL_Delay(1000);
+    rotate(10);
+    HAL_Delay(1000);
 
-    // PUMP ON!
-
-    if (ph_state == true) {
-      measure();
-      analyse();
-      uart_transmit_info();
-
-      if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
-        rotate(PI)
-        measure();
-        analyse();
-        uart_transmit_info();
-
-        if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
-        rotate(GOOD);
-        // PUMP OFF!
-        }else {
-          uart_transmit_info();
-          rotate(GARBAGE);
-          // PUMP OFF!
-        }
-
-      }else {
-        uart_transmit_info();
-        rotate(GARBAGE);
-        // PUMP OFF!
-      }
-
-      rotate(START);
-
-    }
+    /* ACTUAL FLOW */
+    // ph_state = photosence(ph_trigger, &hadc2);
+    //
+    // // PUMP ON!
+    //
+    // if (ph_state == true) {
+    //   measure();
+    //   analyse();
+    //   uart_transmit_info();
+    //
+    //   if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
+    //     rotate(PI)
+    //     measure();
+    //     analyse();
+    //     uart_transmit_info();
+    //
+    //     if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
+    //     rotate(GOOD);
+    //     // PUMP OFF!
+    //     }else {
+    //       uart_transmit_info();
+    //       rotate(GARBAGE);
+    //       // PUMP OFF!
+    //     }
+    //
+    //   }else {
+    //     uart_transmit_info();
+    //     rotate(GARBAGE);
+    //     // PUMP OFF!
+    //   }
+    //
+    //   rotate(START);
+//
+    // }
     
     /* USER CODE END WHILE */
 
@@ -327,7 +284,7 @@ void SystemClock_Config(void)
   * in the RCC_OscInitTypeDef structure.
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
@@ -517,6 +474,86 @@ static void MX_ADC2_Init(void)
 }
 
 /**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 0;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 65535;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.BreakFilter = 0;
+  sBreakDeadTimeConfig.Break2State = TIM_BREAK2_DISABLE;
+  sBreakDeadTimeConfig.Break2Polarity = TIM_BREAK2POLARITY_HIGH;
+  sBreakDeadTimeConfig.Break2Filter = 0;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/**
   * @brief TIM3 Initialization Function
   * @param None
   * @retval None
@@ -683,9 +720,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_FS_PWR_EN_GPIO_Port, USB_FS_PWR_EN_Pin, GPIO_PIN_RESET);
@@ -880,25 +917,30 @@ void analyse(struct MeasureData *s) {
   s->t_first_pulse = s->t_first_pulse * SCALE / s->t_end;
 }
 
-void rotate(int degree){
-  while (encoder_position <= degree ){
+void rotate(int32_t degree){
+  bool angle = false;
+  while (angle == false){
 
-    if (encoder_position  > degree ) {
+    if (encoder_position == degree) {
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+     angle = true;
+     break;
+    } else if (encoder_position > degree) {
      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    }
-    if (encoder_position < degree ) {
+    
+    } else if (encoder_position < degree) {
      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
     }
-    if (encoder_position == degree ) {
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-     break;
-    }
+
+
     timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
     update_encoder(&enc_instance, &htim3);
     encoder_position = enc_instance.position;
+    uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
   }
 }

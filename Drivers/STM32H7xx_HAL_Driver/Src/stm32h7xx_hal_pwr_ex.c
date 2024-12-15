@@ -1299,7 +1299,7 @@ void HAL_PWREx_DisableMemoryShutOff (uint32_t MemoryBlock)
   *         Cortex-M4.
   * @retval None.
   */
-void HAL_PWREx_EnableWakeUpPin (PWREx_WakeupPinTypeDef *sPinParams)
+void HAL_PWREx_EnableWakeUpPin (const PWREx_WakeupPinTypeDef *sPinParams)
 {
   uint32_t pinConfig;
   uint32_t regMask;
@@ -1973,7 +1973,7 @@ PWREx_MMC_VoltageLevel HAL_PWREx_GetMMCVoltage (void)
   *         only Cortex-M4 and wake up Cortex-M7 and Cortex-M4.
   * @retval None.
   */
-void HAL_PWREx_ConfigAVD (PWREx_AVDTypeDef *sConfigAVD)
+void HAL_PWREx_ConfigAVD (const PWREx_AVDTypeDef *sConfigAVD)
 {
   /* Check the parameters */
   assert_param (IS_PWR_AVD_LEVEL (sConfigAVD->AVDLevel));
@@ -2058,8 +2058,11 @@ void HAL_PWREx_PVD_AVD_IRQHandler (void)
         /* PWR PVD interrupt user callback */
         HAL_PWR_PVDCallback ();
 
-        /* Clear PWR EXTI D1/CD pending bit */
-        __HAL_PWR_PVD_EXTI_CLEAR_FLAG ();
+        if(__HAL_PWR_GET_FLAG (PWR_FLAG_AVDO) == 0U)
+        {
+          /* Clear PWR EXTI D1/CD pending bit */
+          __HAL_PWR_PVD_EXTI_CLEAR_FLAG ();
+        }
       }
     }
 #if defined (DUAL_CORE)
@@ -2071,8 +2074,11 @@ void HAL_PWREx_PVD_AVD_IRQHandler (void)
         /* PWR PVD interrupt user callback */
         HAL_PWR_PVDCallback ();
 
-        /* Clear PWR EXTI D2 pending bit */
-        __HAL_PWR_PVD_EXTID2_CLEAR_FLAG();
+        if(__HAL_PWR_GET_FLAG (PWR_FLAG_AVDO) == 0U)
+        {
+          /* Clear PWR EXTI D2 pending bit */
+          __HAL_PWR_PVD_EXTID2_CLEAR_FLAG ();
+        }
       }
     }
 #endif /* defined (DUAL_CORE) */
@@ -2091,8 +2097,11 @@ void HAL_PWREx_PVD_AVD_IRQHandler (void)
         /* PWR AVD interrupt user callback */
         HAL_PWREx_AVDCallback ();
 
-        /* Clear PWR EXTI D1/CD pending bit */
-        __HAL_PWR_AVD_EXTI_CLEAR_FLAG ();
+        if(__HAL_PWR_GET_FLAG (PWR_FLAG_PVDO) == 0U)
+        {
+          /* Clear PWR EXTI D1/CD pending bit */
+          __HAL_PWR_AVD_EXTI_CLEAR_FLAG ();
+        }
       }
     }
 #if defined (DUAL_CORE)
@@ -2104,8 +2113,11 @@ void HAL_PWREx_PVD_AVD_IRQHandler (void)
         /* PWR AVD interrupt user callback */
         HAL_PWREx_AVDCallback ();
 
-        /* Clear PWR EXTI D2 pending bit */
-        __HAL_PWR_AVD_EXTID2_CLEAR_FLAG ();
+        if(__HAL_PWR_GET_FLAG (PWR_FLAG_PVDO) == 0U)
+        {
+          /* Clear PWR EXTI D2 pending bit */
+          __HAL_PWR_AVD_EXTID2_CLEAR_FLAG ();
+        }
       }
     }
 #endif /* defined (DUAL_CORE) */
