@@ -24,7 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../Inc/motor_encoder.h"
-// #include "../Inc/rotate.h"
+#include "../Inc/uart_transmit.h"
 #include "../Inc/photosensor.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -73,8 +73,8 @@ encoder_instance enc_instance;
 const int32_t PI = 445;
 const int SENSITIVITY = 5;
 // 200 char buffer to store our message
-char uart_buf[200];
-int uart_buf_len;
+// char uart_buf[200];
+// int uart_buf_len;
 
 /* USER CODE END PV */
 
@@ -168,9 +168,11 @@ int main(void)
 
   /***************************************************** TEST AREA *****************************************************/
 
+  uart_transmit_msg("Hi!", &huart3);
+  measure(Meas);
+  uart_transmit_array(Meas.signal, sizeof(Meas.signal)/sizeof(Meas.signal[0]), &huart3);
 
-  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-  // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+
 
   // FUN STUFF!
   // int32_t CH3_DC = 0;
@@ -192,9 +194,6 @@ int main(void)
   // HAL_Delay(1000); // a small delay for pump to get on
 
 
-  
-
-
   // PUMP OFF!
   // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
@@ -204,17 +203,17 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
-    uart_buf_len = sprintf(uart_buf, "Contreclockwise to 180° %\r\n");
-    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-    HAL_Delay(1000);
-    rotate(PI);
-    HAL_Delay(1000);
-
-    uart_buf_len = sprintf(uart_buf, "Clockwise to 10° %\r\n");
-    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-    HAL_Delay(1000);
-    rotate(10);
-    HAL_Delay(1000);
+    // uart_buf_len = sprintf(uart_buf, "Contreclockwise to 180° %\r\n");
+    // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    // HAL_Delay(1000);
+    // rotate(PI);
+    // HAL_Delay(1000);
+    //
+    // uart_buf_len = sprintf(uart_buf, "Clockwise to 10° %\r\n");
+    // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    // HAL_Delay(1000);
+    // rotate(10);
+    // HAL_Delay(1000);
 
     /* ACTUAL FLOW */
     // ph_state = photosence(ph_trigger, &hadc2);
@@ -521,7 +520,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 20;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -728,13 +727,13 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(USB_FS_PWR_EN_GPIO_Port, USB_FS_PWR_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(PUMP_PA5_GPIO_Port, PUMP_PA5_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(PUMP_D13_GPIO_Port, PUMP_D13_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|ENCMOTOR_PB6_Pin|ENCMOTOR_PB7_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|ENCMOTOR_D1_Pin|ENCMOTOR_D0_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOG, HELP_SIGNAL_PG9_Pin|VIBROMOTOR_PG12_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOG, HELP_SIGNAL_D8_Pin|VIBROMOTOR_D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
@@ -752,15 +751,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(USB_FS_PWR_EN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PUMP_PA5_Pin */
-  GPIO_InitStruct.Pin = PUMP_PA5_Pin;
+  /*Configure GPIO pin : PUMP_D13_Pin */
+  GPIO_InitStruct.Pin = PUMP_D13_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(PUMP_PA5_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(PUMP_D13_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD1_Pin LD3_Pin ENCMOTOR_PB6_Pin ENCMOTOR_PB7_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|ENCMOTOR_PB6_Pin|ENCMOTOR_PB7_Pin;
+  /*Configure GPIO pins : LD1_Pin LD3_Pin ENCMOTOR_D1_Pin ENCMOTOR_D0_Pin */
+  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|ENCMOTOR_D1_Pin|ENCMOTOR_D0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -793,8 +792,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : HELP_SIGNAL_PG9_Pin VIBROMOTOR_PG12_Pin */
-  GPIO_InitStruct.Pin = HELP_SIGNAL_PG9_Pin|VIBROMOTOR_PG12_Pin;
+  /*Configure GPIO pins : HELP_SIGNAL_D8_Pin VIBROMOTOR_D7_Pin */
+  GPIO_InitStruct.Pin = HELP_SIGNAL_D8_Pin|VIBROMOTOR_D7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -939,41 +938,42 @@ void rotate(int32_t degree){
     timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
     update_encoder(&enc_instance, &htim3);
     encoder_position = enc_instance.position;
-    uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
-    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+    // uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
+    // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
   }
 }
 
-void uart_transmit_analog(void) {
-  /* Transmit an array with ANALOG data via uart */
-  for (int j = 0; j < Meas.t_end; j++) {
-    uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
-    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  }
-}
-void uart_transmit_digital(void) {
-  /* Transmit an array with DIGITAL data via uart */
-  uart_buf_len = sprintf(uart_buf, "Digital \n");
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  for (int j = 0; j < Meas.t_end; j++) {
-    uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
-    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  }
-}
-void uart_transmit_info(void) {
-  /* Transmit extra measurement data via uart */
-  uart_buf_len = sprintf(uart_buf, "Measurements  \n");
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  uart_buf_len = sprintf(uart_buf, "htime = %d ms; pulses = %d;   \r\n",
-                         Meas.htime, Meas.pulses);
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  uart_buf_len = sprintf(uart_buf, "bad state = %d; vibr = %d ms \r\n",
-                         Meas.bad, Meas.t_vibr_start);
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-}
+// void uart_transmit_analog(void) {
+//   /* Transmit an array with ANALOG data via uart */
+//   for (int j = 0; j < Meas.t_end; j++) {
+//     uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
+//     HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+//   }
+// }
+// void uart_transmit_digital(void) {
+//   /* Transmit an array with DIGITAL data via uart */
+//   uart_buf_len = sprintf(uart_buf, "Digital \n");
+//   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+//   for (int j = 0; j < Meas.t_end; j++) {
+//     uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
+//     HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+//   }
+// }
+// void uart_transmit_info(void) {
+//   /* Transmit extra measurement data via uart */
+//   uart_buf_len = sprintf(uart_buf, "Measurements  \n");
+//   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+//   uart_buf_len = sprintf(uart_buf, "htime = %d ms; pulses = %d;   \r\n",
+//                          Meas.htime, Meas.pulses);
+//   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+//   uart_buf_len = sprintf(uart_buf, "bad state = %d; vibr = %d ms \r\n",
+//                          Meas.bad, Meas.t_vibr_start);
+//   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+// }
 
 // FIXME: so i+1 is wrong there is no i yet, make a counter and increase it each time a function is being called
+//
 // void uart_transmit_csv(void) {
 //
 //   uart_buf_len = sprintf(uart_buf, "MeasurementNr.,Pulses,Hightime[ms],t_vibration[ms],t_responce[ms],bad[bool]\r\n");

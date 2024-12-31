@@ -4,7 +4,7 @@
     - misc  : https://os.mbed.com/platforms/ST-Nucleo-H7A3ZI-Q
 
 # Issues:
-- it' been observed, that somtimes motor don't stop on setted degree
+- it has been observed, that sometimes motor doesn't stop on setted degree
 
 # TODO's:
 - test motor behaviour with current code
