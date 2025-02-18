@@ -128,10 +128,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     /**ADC2 GPIO Configuration
     PF14     ------> ADC2_INP6
     */
-    GPIO_InitStruct.Pin = ADC2_PHOTOSEN_PF14_Pin;
+    GPIO_InitStruct.Pin = ADC2_PHOTOSEN_A9_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(ADC2_PHOTOSEN_PF14_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(ADC2_PHOTOSEN_A9_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN ADC2_MspInit 1 */
 
@@ -182,7 +182,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     /**ADC2 GPIO Configuration
     PF14     ------> ADC2_INP6
     */
-    HAL_GPIO_DeInit(ADC2_PHOTOSEN_PF14_GPIO_Port, ADC2_PHOTOSEN_PF14_Pin);
+    HAL_GPIO_DeInit(ADC2_PHOTOSEN_A9_GPIO_Port, ADC2_PHOTOSEN_A9_Pin);
 
   /* USER CODE BEGIN ADC2_MspDeInit 1 */
 

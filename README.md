@@ -6,9 +6,12 @@
 # Issues:
 - it has been observed, that sometimes motor doesn't stop on setted degree
 
-# TODO's:
-- test motor behaviour with current code
-- add wiring description of encodermotor
 
-
+# Wiring description of encodermotor:
+- Red    - Motor power terminal (+)
+- Black  - Quad encoder Ground
+- Green  - Quad encoder B signal
+- Blue   - Quad encoder +5Vcc
+- Yellow - Quad encoder A signal
+- White  - Motor power terminal (-)
 

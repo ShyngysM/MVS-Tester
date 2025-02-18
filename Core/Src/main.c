@@ -1,6 +1,4 @@
 /* USER CODE BEGIN Header */
-// TODO:
-// - make function photosence() which returns an array and then photocheck(trigger) it.
 /**
  ******************************************************************************
  * @file           : main.c
@@ -24,7 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../Inc/motor_encoder.h"
-#include "../Inc/uart_transmit.h"
+// #include "../Inc/uart_transmit.h"
 #include "../Inc/photosensor.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -70,11 +68,12 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 encoder_instance enc_instance;
 
-const int32_t PI = 445;
+// NOTE: 1348 is not exact 180°, it needs to be measured!
+const int32_t PI = 1348; // for prev. motor it was 445
 const int SENSITIVITY = 5;
 // 200 char buffer to store our message
-// char uart_buf[200];
-// int uart_buf_len;
+char uart_buf[200];
+int uart_buf_len;
 
 /* USER CODE END PV */
 
@@ -108,7 +107,7 @@ uint16_t timer_counter;
 
 // true means MVS is detected
 bool ph_state = false;
-int ph_trigger = 10000;
+int ph_trigger = 30000;
 
 /* USER CODE END 0 */
 
@@ -163,14 +162,22 @@ int main(void)
   // CCR = x% * 65535
   // Writing a CCR register of timer 1, controlling the duty cycle of PWM 
   // a value of 8000 is pretty decent
-  TIM1->CCR3 = 0.12*65535;
+  TIM1->CCR3 = 0.25*65535;
 
 
   /***************************************************** TEST AREA *****************************************************/
 
-  uart_transmit_msg("Hi!", &huart3);
-  measure(Meas);
-  uart_transmit_array(Meas.signal, sizeof(Meas.signal)/sizeof(Meas.signal[0]), &huart3);
+// FIXME: function seem to overflow the buffer dunno!
+  // uart_transmit_msg("Hi!", &huart3);
+
+  // for (int i = 0; i<10; i++) {
+  //   rotate(angle);
+  //   HAL_Delay(1000);
+  //   rotate(0);
+  //   HAL_Delay(1000);
+  // };
+  // measure(&Meas);
+  // uart_transmit_array(Meas.signal, sizeof(Meas.signal)/sizeof(Meas.signal[0]), &huart3);
 
 
 
@@ -189,13 +196,27 @@ int main(void)
 
 
 
-  // PUMP ON!
-  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  // HAL_Delay(1000); // a small delay for pump to get on
+  // PHOTOSENSOR CHECK! 
+  // int raw;
+  // HAL_ADC_Start(&hadc2);
+  // HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
+  // raw = HAL_ADC_GetValue(&hadc2);
+  // uart_buf_len = sprintf(uart_buf, "raw =  %d\r\n", raw);
+  // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  // bool test;
+  // test = photosence(ph_trigger, &hadc2);
+  // uart_buf_len = sprintf(uart_buf, "test =  %d\r\n", test);
+  // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
 
-  // PUMP OFF!
-  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+  // HAL_GPIO_WritePin(PUMP_D13_GPIO_Port, PUMP_D13_Pin, GPIO_PIN_SET);
+  rotate(-PI);
+  measure(&Meas);
+  analyse(&Meas);
+  uart_transmit_info();
+
+
+
 
 
   /* USER CODE END 2 */
@@ -203,52 +224,47 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
-    // uart_buf_len = sprintf(uart_buf, "Contreclockwise to 180° %\r\n");
-    // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-    // HAL_Delay(1000);
-    // rotate(PI);
-    // HAL_Delay(1000);
-    //
-    // uart_buf_len = sprintf(uart_buf, "Clockwise to 10° %\r\n");
-    // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-    // HAL_Delay(1000);
-    // rotate(10);
-    // HAL_Delay(1000);
+                                  /* ACTUAL FLOW */
 
-    /* ACTUAL FLOW */
-    // ph_state = photosence(ph_trigger, &hadc2);
-    //
-    // // PUMP ON!
-    //
-    // if (ph_state == true) {
-    //   measure();
-    //   analyse();
-    //   uart_transmit_info();
-    //
-    //   if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
-    //     rotate(PI)
-    //     measure();
-    //     analyse();
-    //     uart_transmit_info();
-    //
-    //     if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
-    //     rotate(GOOD);
-    //     // PUMP OFF!
-    //     }else {
-    //       uart_transmit_info();
-    //       rotate(GARBAGE);
-    //       // PUMP OFF!
-    //     }
-    //
-    //   }else {
-    //     uart_transmit_info();
-    //     rotate(GARBAGE);
-    //     // PUMP OFF!
-    //   }
-    //
-    //   rotate(START);
-//
-    // }
+    ph_state = photosence(ph_trigger, &hadc2);
+    
+    if (ph_state == true) {
+         // PUMP ON!
+      HAL_GPIO_WritePin(PUMP_D13_GPIO_Port, PUMP_D13_Pin, GPIO_PIN_SET);
+      HAL_Delay(2000);
+      measure(&Meas);
+      analyse(&Meas);
+      uart_transmit_info();
+
+      if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
+        rotate(PI);
+        measure(&Meas);
+        analyse(&Meas);
+        uart_transmit_info();
+
+        if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
+         rotate(PI+PI/4); //good
+         // PUMP OFF!
+         // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+        }else {
+          uart_transmit_info();
+          rotate(PI-PI/4); //garbage
+          // PUMP OFF!
+          // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+          HAL_Delay(1000);
+        }
+
+      }else {
+        uart_transmit_info();
+        rotate(PI-PI/4);
+        // PUMP OFF!
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+        HAL_Delay(1000);
+      }
+
+      rotate(0);
+
+    }
     
     /* USER CODE END WHILE */
 
@@ -811,10 +827,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-// calling an ISR for STEPPER (not used, not deleting dunno why)
-// void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-//   STEPPER_TMR_OVF_ISR(htim);
-// }
 
 void measure(struct MeasureData *s) {
   const int ONESEC = 10000 - 1;
@@ -837,7 +849,7 @@ void measure(struct MeasureData *s) {
       // saving time of begin vibration
       s->t_vibr_start = i;
       is_vibrating = true;
-    } else if (is_vibrating && tim_val_ms >= ONESEC * 0.3) {
+    } else if (is_vibrating && tim_val_ms >= ONESEC * 0.4) {
       HAL_GPIO_WritePin(GPIOG, GPIO_PIN_12, GPIO_PIN_RESET); // vibrator OFF
       is_vibrating = false;
     }
@@ -944,33 +956,33 @@ void rotate(int32_t degree){
   }
 }
 
-// void uart_transmit_analog(void) {
-//   /* Transmit an array with ANALOG data via uart */
-//   for (int j = 0; j < Meas.t_end; j++) {
-//     uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
-//     HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-//   }
-// }
-// void uart_transmit_digital(void) {
-//   /* Transmit an array with DIGITAL data via uart */
-//   uart_buf_len = sprintf(uart_buf, "Digital \n");
-//   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-//   for (int j = 0; j < Meas.t_end; j++) {
-//     uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
-//     HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-//   }
-// }
-// void uart_transmit_info(void) {
-//   /* Transmit extra measurement data via uart */
-//   uart_buf_len = sprintf(uart_buf, "Measurements  \n");
-//   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-//   uart_buf_len = sprintf(uart_buf, "htime = %d ms; pulses = %d;   \r\n",
-//                          Meas.htime, Meas.pulses);
-//   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-//   uart_buf_len = sprintf(uart_buf, "bad state = %d; vibr = %d ms \r\n",
-//                          Meas.bad, Meas.t_vibr_start);
-//   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-// }
+void uart_transmit_analog(void) {
+  /* Transmit an array with ANALOG data via uart */
+  for (int j = 0; j < Meas.t_end; j++) {
+    uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  }
+}
+void uart_transmit_digital(void) {
+  /* Transmit an array with DIGITAL data via uart */
+  uart_buf_len = sprintf(uart_buf, "Digital \n");
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  for (int j = 0; j < Meas.t_end; j++) {
+    uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  }
+}
+void uart_transmit_info(void) {
+  /* Transmit extra measurement data via uart */
+  uart_buf_len = sprintf(uart_buf, "Measurements  \n");
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  uart_buf_len = sprintf(uart_buf, "htime = %d ms; pulses = %d;   \r\n",
+                         Meas.htime, Meas.pulses);
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  uart_buf_len = sprintf(uart_buf, "bad state = %d; vibr = %d ms \r\n",
+                         Meas.bad, Meas.t_vibr_start);
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+}
 
 // FIXME: so i+1 is wrong there is no i yet, make a counter and increase it each time a function is being called
 //
