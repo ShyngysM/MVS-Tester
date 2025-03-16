@@ -40,6 +40,9 @@ struct MeasureData {
   int t_end;
   int pulses;
   int htime;
+  int count;
+  bool open_before_vibr;
+  bool open_after_vibr;
   bool bad;
 } Meas;
 
@@ -69,10 +72,9 @@ UART_HandleTypeDef huart3;
 encoder_instance enc_instance;
 
 // NOTE: 1348 is not exact 180°, it needs to be measured!
-const int32_t PI = 1348; // for prev. motor it was 445
-const int SENSITIVITY = 5;
-// 200 char buffer to store our message
-char uart_buf[200];
+const int32_t PI = 1348;        // for prev. motor it was 445
+const int SENSITIVITY = 5;      // min. amount of pulses
+char uart_buf[200];             // 200 char buffer to store our message
 int uart_buf_len;
 
 /* USER CODE END PV */
@@ -95,7 +97,7 @@ void rotate(int32_t degree);
 void uart_transmit_analog(void);
 void uart_transmit_digital(void);
 void uart_transmit_info(void);
-void uart_transmit_csv(void);
+void uart_transmit_csv(int *);
 
 /* USER CODE END PFP */
 
@@ -107,7 +109,7 @@ uint16_t timer_counter;
 
 // true means MVS is detected
 bool ph_state = false;
-int ph_trigger = 30000;
+const int PH_TRIGGER = 30000;
 
 /* USER CODE END 0 */
 
@@ -119,6 +121,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+  printf("Start!\n");
+  Meas.count = 0;
 
   /* USER CODE END 1 */
 
@@ -153,7 +157,7 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
-  // Enable PWM channel
+  // Enable PWM channel for motor control
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   // INIT Encoder
   reset_encoder(&enc_instance);
@@ -168,6 +172,7 @@ int main(void)
   /***************************************************** TEST AREA *****************************************************/
 
 // FIXME: function seem to overflow the buffer dunno!
+  
   // uart_transmit_msg("Hi!", &huart3);
 
   // for (int i = 0; i<10; i++) {
@@ -178,8 +183,6 @@ int main(void)
   // };
   // measure(&Meas);
   // uart_transmit_array(Meas.signal, sizeof(Meas.signal)/sizeof(Meas.signal[0]), &huart3);
-
-
 
   // FUN STUFF!
   // int32_t CH3_DC = 0;
@@ -194,8 +197,6 @@ int main(void)
   //     HAL_Delay(1);
   // }
 
-
-
   // PHOTOSENSOR CHECK! 
   // int raw;
   // HAL_ADC_Start(&hadc2);
@@ -204,19 +205,26 @@ int main(void)
   // uart_buf_len = sprintf(uart_buf, "raw =  %d\r\n", raw);
   // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
   // bool test;
-  // test = photosence(ph_trigger, &hadc2);
+  // test = photosence(PH_TRIGGER, &hadc2);
   // uart_buf_len = sprintf(uart_buf, "test =  %d\r\n", test);
   // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
 
   // HAL_GPIO_WritePin(PUMP_D13_GPIO_Port, PUMP_D13_Pin, GPIO_PIN_SET);
-  rotate(-PI);
-  measure(&Meas);
-  analyse(&Meas);
-  uart_transmit_info();
+  // HAL_Delay(2000);
+  
+  // rotate(-PI);
+  // measure(&Meas);
+  // analyse(&Meas);
+  // uart_transmit_info();
+  // uart_transmit_csv(&Meas.count);
 
-
-
+// while (1) {
+    // measure(&Meas);
+    // analyse(&Meas);
+    // uart_transmit_csv(&Meas.count);
+    // HAL_Delay(1000);
+// }
 
 
   /* USER CODE END 2 */
@@ -226,7 +234,7 @@ int main(void)
   while (1) {
                                   /* ACTUAL FLOW */
 
-    ph_state = photosence(ph_trigger, &hadc2);
+    ph_state = photosence(PH_TRIGGER, &hadc2);
     
     if (ph_state == true) {
          // PUMP ON!
@@ -234,20 +242,20 @@ int main(void)
       HAL_Delay(2000);
       measure(&Meas);
       analyse(&Meas);
-      uart_transmit_info();
+      uart_transmit_csv(&Meas.count);
 
       if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
         rotate(PI);
         measure(&Meas);
         analyse(&Meas);
-        uart_transmit_info();
+        uart_transmit_csv(&Meas.count);
 
         if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
          rotate(PI+PI/4); //good
          // PUMP OFF!
          // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
         }else {
-          uart_transmit_info();
+          uart_transmit_csv(&Meas.count);
           rotate(PI-PI/4); //garbage
           // PUMP OFF!
           // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
@@ -255,7 +263,7 @@ int main(void)
         }
 
       }else {
-        uart_transmit_info();
+        uart_transmit_csv(&Meas.count);
         rotate(PI-PI/4);
         // PUMP OFF!
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
@@ -828,18 +836,32 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+ /* needed for proper configuration of SWV ITM Data Console aka. output printf() */
+int _write(int file, char *ptr, int len)
+{
+  int DataIdx;
+
+  for (DataIdx = 0; DataIdx < len; DataIdx++)
+  {
+    ITM_SendChar(*ptr++);
+  }
+  return len;
+}
+
+
+
 void measure(struct MeasureData *s) {
   const int ONESEC = 10000 - 1;
   // store our counter value
-  int tim_val_ms = 0; // tick is 0.1 ms
+  int tim_val_ms = 0;               // tick is 0.1 ms
 
   bool is_vibrating = false;
   // store our 16bit ADC reading
   uint16_t raw;
   // starting timer 16
   HAL_TIM_Base_Start(&htim16);
-  // set help signal (yellow led)
-  // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_SET);
+    /* UNCOMMENT TO: set help signal (yellow led) */
+    // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_SET);
 
   for (int i = 0; tim_val_ms < ONESEC; i++) {
 
@@ -870,8 +892,9 @@ void measure(struct MeasureData *s) {
   __HAL_TIM_SET_COUNTER(&htim16, 0);
   s->pulses = 0;
   s->htime = 0;
-  // reset help signal (yellow led)
-  // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
+    /* UNCOMMENT TO: reset help signal (yellow led) */
+    // HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9, GPIO_PIN_RESET);
+  s->count++;
 }
 
 void analyse(struct MeasureData *s) {
@@ -896,10 +919,15 @@ void analyse(struct MeasureData *s) {
       s->htime++;
     }
   }
-  // check if sensor has been open before vibration
+  
   s->bad = false;
+  s->open_before_vibr = false;
+  s->open_after_vibr = false;
+
+  // check if sensor has been open before vibration
   for (int i = 0; i <= s->t_vibr_start; i++) {
     if (s->signal[i] == 0) {
+      s->open_before_vibr = true;
       s->bad = true;
       break;
     }
@@ -907,11 +935,12 @@ void analyse(struct MeasureData *s) {
   // check if sensor has been open after vibration + Einschwingungszeit
   for (int i = (int)(s->t_end * 0.75); i < s->t_end; i++) {
     if (s->signal[i] == 0) {
+      s->open_after_vibr = true;
       s->bad = true;
       break;
     }
   }
-  // check if sensor is not kurzgeschlossen all time
+  // check if sensor is not short connected all time
   if (s->pulses == 0) {
     s->bad = true;
   }
@@ -946,10 +975,10 @@ void rotate(int32_t degree){
      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
     }
 
-
     timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
     update_encoder(&enc_instance, &htim3);
     encoder_position = enc_instance.position;
+    /* UNCOMMENT TO: transmit encoder position */
     // uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
     // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
@@ -984,18 +1013,20 @@ void uart_transmit_info(void) {
   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 }
 
-// FIXME: so i+1 is wrong there is no i yet, make a counter and increase it each time a function is being called
-//
-// void uart_transmit_csv(void) {
-//
-//   uart_buf_len = sprintf(uart_buf, "MeasurementNr.,Pulses,Hightime[ms],t_vibration[ms],t_responce[ms],bad[bool]\r\n");
-//   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-//
-//   uart_buf_len = sprintf(uart_buf, "%d, %d, %d, %d, %d, %d\r\n",
-//                          i+1, Meas.pulses, Meas.htime, Meas.t_vibr_start, Meas.t_first_pulse, Meas.bad);
-//
-//   HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-// }
+
+void uart_transmit_csv(int *count) {
+
+  if ((*count) == 1) {
+    uart_buf_len = sprintf(uart_buf, "MeasurementNr., Pulses, Hightime[ms], t_vibration[ms], t_responce[ms], open_before_vibr[bool], open_after_vibr[bool], bad[bool]\r\n");
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  }
+
+
+  uart_buf_len = sprintf(uart_buf, "%d, %d, %d, %d, %d, %d, %d, %d\r\n",
+                         Meas.count, Meas.pulses, Meas.htime, Meas.t_vibr_start, Meas.t_first_pulse, Meas.open_before_vibr, Meas.open_after_vibr, Meas.bad);
+
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+}
 
 /* USER CODE END 4 */
 

@@ -3,10 +3,6 @@
     - Board : https://www.st.com/en/evaluation-tools/nucleo-h7a3zi-q.html#overview
     - misc  : https://os.mbed.com/platforms/ST-Nucleo-H7A3ZI-Q
 
-# Issues:
-- it has been observed, that sometimes motor doesn't stop on setted degree
-
-
 # Wiring description of encodermotor:
 - Red    - Motor power terminal (+)
 - Black  - Quad encoder Ground
@@ -15,3 +11,16 @@
 - Yellow - Quad encoder A signal
 - White  - Motor power terminal (-)
 
+# Notes:
+- SWV from STM32CubeIde is configured and work fine, but only with X11
+- SWV Data Trace Timeline Graph can plot in life time a content of chosen variable
+- SWV ITM Data Console can output "printf()"
+
+# TODO:
+1. Create manual mode for motor control
+2. POGOPIN BEFESTIGUNG IN AUTOCAD !!!
+3. Vacuum im Schlauch? Spuk Effekt
+4. Einstellmöglichkeit über -> conf.h
+
+# Issues:
+- it has been observed, that sometimes motor doesn't stop on setted degree
