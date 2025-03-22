@@ -220,10 +220,10 @@ int main(void)
   // uart_transmit_csv(&Meas.count);
 
 // while (1) {
-    // measure(&Meas);
-    // analyse(&Meas);
-    // uart_transmit_csv(&Meas.count);
-    // HAL_Delay(1000);
+//     measure(&Meas);
+//     analyse(&Meas);
+//     uart_transmit_csv(&Meas.count);
+//     HAL_Delay(1000);
 // }
 
 
