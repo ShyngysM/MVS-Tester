@@ -22,7 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../Inc/motor_encoder.h"
-// #include "../Inc/uart_transmit.h"
+#include "../Inc/uart_transmit.h"
 #include "../Inc/photosensor.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -173,7 +173,7 @@ int main(void)
 
 // FIXME: function seem to overflow the buffer dunno!
   
-  // uart_transmit_msg("Hi!", &huart3);
+  uart_transmit_msg("Hi!", &huart3);
 
   // for (int i = 0; i<10; i++) {
   //   rotate(angle);
@@ -242,20 +242,20 @@ int main(void)
       HAL_Delay(2000);
       measure(&Meas);
       analyse(&Meas);
-      uart_transmit_csv(&Meas.count);
+      // uart_transmit_csv(&Meas.count);
 
       if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
         rotate(PI);
         measure(&Meas);
         analyse(&Meas);
-        uart_transmit_csv(&Meas.count);
+        // uart_transmit_csv(&Meas.count);
 
         if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
          rotate(PI+PI/4); //good
          // PUMP OFF!
          // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
         }else {
-          uart_transmit_csv(&Meas.count);
+          // uart_transmit_csv(&Meas.count);
           rotate(PI-PI/4); //garbage
           // PUMP OFF!
           // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
@@ -263,7 +263,7 @@ int main(void)
         }
 
       }else {
-        uart_transmit_csv(&Meas.count);
+        // uart_transmit_csv(&Meas.count);
         rotate(PI-PI/4);
         // PUMP OFF!
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);

@@ -12,6 +12,9 @@
 # Transmit via uart:
 - ./st-transmit.sh
 
+# Overview of prototype
+![Prototype](Docs/mvsfoerderer.gif)
+
 # Helpfull links:
 - µC    : https://www.st.com/en/microcontrollers-microprocessors/stm32h7a3zi.html#documentation
 - Board : https://www.st.com/en/evaluation-tools/nucleo-h7a3zi-q.html#overview
@@ -32,9 +35,9 @@
 
 # TODO:
 1. Create manual mode for motor control
-2. Vacuum im Schlauch? Spuk Effekt
-3. Einstellmöglichkeit über -> conf.h
+2. Einstellmöglichkeit über -> conf.h
+3. uart_transmit_csv move to uart_transmit.c and modify!
 
 # Issues:
 - it has been observed, that sometimes motor doesn't stop on setted degree
-- seems to be not cleared buffer
+- uart_transmit seems not clearing buffer after usage
