@@ -12,7 +12,7 @@
 # Transmit via uart:
 - ./st-transmit.sh
 
-# Overview of prototype
+# Overview of prototype:
 ![Prototype](Docs/mvsfoerderer.gif)
 
 # Helpfull links:

@@ -1,2 +1,3 @@
-../Core/Src/uart_transmit.c:18:6:uart_transmit_msg	5
-../Core/Src/uart_transmit.c:39:6:uart_transmit_array	8
+../Core/Src/uart_transmit.c:22:6:uart_transmit_msg	5
+../Core/Src/uart_transmit.c:42:6:uart_transmit_table	4
+../Core/Src/uart_transmit.c:72:6:uart_transmit_array	8
