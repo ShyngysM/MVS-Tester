@@ -2,6 +2,11 @@
 #define INC_MOTOR_ENCODER_H_
 #include "main.h"
 #include "stdint.h"
+#include <stdbool.h>
+
+extern int16_t encoder_velocity;
+extern int32_t encoder_position;
+extern uint16_t timer_counter;
 
 typedef struct {
   int16_t velocity;
@@ -11,5 +16,7 @@ typedef struct {
 
 void update_encoder(encoder_instance *encoder_value, TIM_HandleTypeDef *htim);
 void reset_encoder(encoder_instance *encoder_value);
+void rotate_motor(int degree, encoder_instance *encoder_value,
+                  TIM_HandleTypeDef *htim);
 
 #endif // !INC_MOTOR_ENCODER_H_

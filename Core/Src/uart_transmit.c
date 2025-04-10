@@ -1,38 +1,20 @@
 #include "../Inc/uart_transmit.h"
 
-// void uart_transmit_msg(char *msg, char uart_buf[], UART_HandleTypeDef
-// *huart){
-//   int uart_buf_len = 0;
-//   uart_buf_len = sprintf(uart_buf, msg);
-//   HAL_UART_Transmit(huart, (uint8_t *)uart_buf, uart_buf_len, 100); // 100 is
-//   a timeout in ms or s?
-// }
-
-// void send_uart(char * buffer)
-// {
-//    char msg[2+tx_buffer_size+2+1] = "";	// 'CR' 'LF' "data" 'CR' 'LF'
-//    '\0'
-//    // The "-1" here guarantees that there is room for snprintf() to append
-//    // the trailing NULL
-//    snprintf(msg, sizeof(msg)-1, "\r\n%s\r\n", buffer);
-//    HAL_UART_Transmit(&huart3, (uint8_t *)msg, strlen(msg)); // No need to
-//    transmit the null terminator
-// }
+// Static buffer to avoid dynamic memory allocation
+char uart_buf[256]; // Adjust size if needed
+int uart_buf_len = 0;
 
 void uart_transmit_msg(char *msg, UART_HandleTypeDef *huart) {
   if (msg == NULL || huart == NULL) {
-    return;
+    printf("Error: no string in msg or wrong adress of UART_HandleTypeDef!\n");
   }
 
-  // Static buffer to avoid dynamic memory allocation
-  char uart_buf[256]; // Adjust size if needed
-                      // Clear the buffer explicitly
-  memset(uart_buf, 0, sizeof(uart_buf));
+  memset(uart_buf, 0, sizeof(uart_buf)); // Clear the buffer explicitly
 
   // Format the message into the buffer
-  int uart_buf_len = snprintf(uart_buf, sizeof(uart_buf), "%s\r\n", msg);
+  uart_buf_len = snprintf(uart_buf, sizeof(uart_buf), "%s\r\n", msg);
   if (uart_buf_len < 0 || uart_buf_len >= sizeof(uart_buf)) {
-    return; // Handle error or truncate message
+    printf("Error buffer overflow!\n");
   }
 
   // Transmit the formatted message
@@ -44,25 +26,21 @@ void uart_transmit_table(int *count, int *pulses, int *htime, int *t_vibration,
                          bool *open_after_vibr, bool *bad,
                          UART_HandleTypeDef *huart) {
   if ((*count) == 1) {
-    uart_transmit_msg("MeasurementNr., Pulses, Hightime[ms], t_vibration[ms], "
-                      "t_responce[ms], open_before_vibr[bool], "
-                      "open_after_vibr[bool], bad[bool]",
+    uart_transmit_msg("MeasurementNr.,Pulses,Hightime[ms],t_vibration[ms],"
+                      "t_responce[ms],open_before_vibr[bool],"
+                      "open_after_vibr[bool],bad[bool]",
                       huart);
   }
 
-  //
-  // Static buffer to avoid dynamic memory allocation
-  char uart_buf[256]; // Adjust size if needed
-                      // Clear the buffer explicitly
   memset(uart_buf, 0, sizeof(uart_buf));
 
   // Format the message into the buffer
-  int uart_buf_len =
-      snprintf(uart_buf, sizeof(uart_buf), "%d, %d, %d, %d, %d, %d, %d, %d\r\n",
+  uart_buf_len =
+      snprintf(uart_buf, sizeof(uart_buf), "%d,%d,%d,%d,%d,%d,%d,%d\r\n",
                *count, *pulses, *htime, *t_vibration, *t_responce,
                *open_before_vibr, *open_after_vibr, *bad);
   if (uart_buf_len < 0 || uart_buf_len >= sizeof(uart_buf)) {
-    return; // Handle error or truncate message
+    printf("Error buffer overflow!\n");
   }
 
   // Transmit the formatted message

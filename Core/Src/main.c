@@ -73,8 +73,6 @@ encoder_instance enc_instance;
 // NOTE: 1348 is not exact 180°, it needs to be measured!
 const int32_t PI = 1348;   // for prev. motor it was 445
 const int SENSITIVITY = 5; // min. amount of pulses
-char uart_buf[200];        // 200 char buffer to store our message
-int uart_buf_len;
 
 /* USER CODE END PV */
 
@@ -95,16 +93,12 @@ void analyse(struct MeasureData *);
 void rotate(int32_t degree);
 void uart_transmit_analog(void);
 void uart_transmit_digital(void);
-void uart_transmit_info(void);
 void uart_transmit_csv(void);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int16_t encoder_velocity;
-int32_t encoder_position;
-uint16_t timer_counter;
 
 // true means MVS is detected
 bool ph_state = false;
@@ -165,20 +159,22 @@ int main(void) {
   // CCR = x% * 65535
   // Writing a CCR register of timer 1, controlling the duty cycle of PWM
   // a value of 8000 is pretty decent
-  TIM1->CCR3 = 0.25 * 65535;
+  // TIM1->CCR3 = 0.25 * 65535;
+  TIM1->CCR3 = 0.10 * 65535;
 
   /***************************************************** TEST AREA
    * *****************************************************/
 
-  // FIXME: function seem to overflow the buffer dunno!
-
   uart_transmit_msg("Hi!", &huart3);
 
-  // for (int i = 0; i<10; i++) {
-  //   rotate(angle);
-  //   HAL_Delay(1000);
-  //   rotate(0);
-  //   HAL_Delay(1000);
+  // for (int i = 0; i < 10; i++) {
+  // int angle = 445 * i;
+  // rotate(angle);
+  rotate_motor(-445, &enc_instance, &htim3);
+  uart_buf_len =
+      sprintf(uart_buf, "Counter value = %ld\r\n", enc_instance.position);
+  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  // HAL_Delay(1000);
   // };
   // measure(&Meas);
   // uart_transmit_array(Meas.signal,
@@ -212,21 +208,13 @@ int main(void) {
   // HAL_GPIO_WritePin(PUMP_D13_GPIO_Port, PUMP_D13_Pin, GPIO_PIN_SET);
   // HAL_Delay(2000);
 
-  // rotate(-PI);
-  // uart_transmit_info();
-  // uart_transmit_csv(&Meas.count);
-
   // while (1) {
-  measure(&Meas);
-  analyse(&Meas);
-  uart_transmit_csv();
-  // uart_transmit_table(&Meas.count, &Meas.pulses, &Meas.htime,
-  //                     &Meas.t_vibr_start, &Meas.t_first_pulse,
-  //                     &Meas.open_before_vibr, &Meas.open_after_vibr,
-  //                     &Meas.bad, &huart3);
+  //   measure(&Meas);
+  //   analyse(&Meas);
+  //   uart_transmit_csv();
   //   HAL_Delay(1000);
   // }
-
+  // rotate_motor(PI, &enc_instance, &htim3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -234,7 +222,7 @@ int main(void) {
   while (1) {
     /* ACTUAL FLOW */
 
-    ph_state = photosence(PH_TRIGGER, &hadc2);
+    // ph_state = photosence(PH_TRIGGER, &hadc2);
 
     if (ph_state == true) {
       // PUMP ON!
@@ -940,13 +928,13 @@ void rotate(int32_t degree) {
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
     }
 
-    timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
+    // timer_counter = __HAL_TIM_GET_COUNTER(&htim3);
     update_encoder(&enc_instance, &htim3);
     encoder_position = enc_instance.position;
     /* UNCOMMENT TO: transmit encoder position */
-    // uart_buf_len = sprintf(uart_buf, "Counter value = %ld\r\n",
-    // encoder_position); HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf,
-    // uart_buf_len, 100);
+    uart_buf_len =
+        sprintf(uart_buf, "Counter value = %ld\r\n", encoder_position);
+    HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
   }
 }
 
@@ -965,17 +953,6 @@ void uart_transmit_digital(void) {
     uart_buf_len = sprintf(uart_buf, "%d, %u \r\n", j, Meas.signal[j]);
     HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
   }
-}
-void uart_transmit_info(void) {
-  /* Transmit extra measurement data via uart */
-  uart_buf_len = sprintf(uart_buf, "Measurements  \n");
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  uart_buf_len = sprintf(uart_buf, "htime = %d ms; pulses = %d;   \r\n",
-                         Meas.htime, Meas.pulses);
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
-  uart_buf_len = sprintf(uart_buf, "bad state = %d; vibr = %d ms \r\n",
-                         Meas.bad, Meas.t_vibr_start);
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 }
 
 void uart_transmit_csv() {
