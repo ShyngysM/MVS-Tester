@@ -159,8 +159,8 @@ int main(void) {
   // CCR = x% * 65535
   // Writing a CCR register of timer 1, controlling the duty cycle of PWM
   // a value of 8000 is pretty decent
-  // TIM1->CCR3 = 0.25 * 65535;
-  TIM1->CCR3 = 0.10 * 65535;
+  TIM1->CCR3 = 0.25 * 65535;
+  // TIM1->CCR3 = 0.10 * 65535;
 
   /***************************************************** TEST AREA
    * *****************************************************/
@@ -170,10 +170,10 @@ int main(void) {
   // for (int i = 0; i < 10; i++) {
   // int angle = 445 * i;
   // rotate(angle);
-  rotate_motor(-445, &enc_instance, &htim3);
-  uart_buf_len =
-      sprintf(uart_buf, "Counter value = %ld\r\n", enc_instance.position);
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  // rotate_motor(-445, &enc_instance, &htim3);
+  // uart_buf_len =
+  //     sprintf(uart_buf, "Counter value = %ld\r\n", enc_instance.position);
+  // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
   // HAL_Delay(1000);
   // };
   // measure(&Meas);
@@ -222,7 +222,7 @@ int main(void) {
   while (1) {
     /* ACTUAL FLOW */
 
-    // ph_state = photosence(PH_TRIGGER, &hadc2);
+    ph_state = photosence(PH_TRIGGER, &hadc2);
 
     if (ph_state == true) {
       // PUMP ON!
