@@ -5,6 +5,10 @@
 - make
 - arm-none-eabi-gcc
 - arm-none-eabi-newlib
+- disable fcyclomatic in STM32CubeIde
+  + for anyone else like me, you need to click on the project name and only then go to File, Properties, C/C++ build, Miscellaneous)
+  + https://community.st.com/t5/stm32cubeide-mcus/a-problem-with-fcyclomatic-complexity/m-p/633482#M23901
+  
 		
 # Compile and Flash:
 - ./st-compile-flash.sh
@@ -32,12 +36,16 @@
 - SWV from STM32CubeIde is configured and work fine, but only with X11
 - SWV Data Trace Timeline Graph can plot in life time a content of chosen variable
 - SWV ITM Data Console can output "printf()"
+- longer vacuum hose reduced the backflow and suction too 
+- the hose itself is less soft, but short hose remained with backflow problem
+
 
 # TODO:
 1. Create manual mode for motor control
 2. Einstellmöglichkeit über -> conf.h
-3. uart_transmit_csv move to uart_transmit.c and modify!
+3. create uart transmit array
+4. Order check valve (Rückschlagventil)
 
 # Issues:
-- it has been observed, that sometimes motor doesn't stop on setted degree
-- uart_transmit seems not clearing buffer after usage
+- it has been observed, that with system flash all pins are getting high, which causes the motor turn to a small degree
+- contact issues with pogopins, apparently the suction causes MVS to jiggle from side to side
