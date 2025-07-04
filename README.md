@@ -36,16 +36,14 @@
 - SWV from STM32CubeIde is configured and work fine, but only with X11
 - SWV Data Trace Timeline Graph can plot in life time a content of chosen variable
 - SWV ITM Data Console can output "printf()"
-- longer vacuum hose reduced the backflow and suction too 
-- the hose itself is less soft, but short hose remained with backflow problem
 
 
 # TODO:
 1. Create manual mode for motor control
 2. Einstellmöglichkeit über -> conf.h
 3. create uart transmit array
-4. Order check valve (Rückschlagventil)
 
 # Issues:
 - it has been observed, that with system flash all pins are getting high, which causes the motor turn to a small degree
 - contact issues with pogopins, apparently the suction causes MVS to jiggle from side to side
+  + SOLVED with check valve!
