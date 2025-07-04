@@ -1,6 +1,6 @@
 tmp_data.*
 uart_tmp.csv
-./Debug/*
+./Debug/
 .cproject
 .settings/language.settings.xml
 'h7a3zi_combine2 Debug.launch'
