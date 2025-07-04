@@ -170,10 +170,12 @@ int main(void) {
   // for (int i = 0; i < 10; i++) {
   // int angle = 445 * i;
   // rotate(angle);
-  rotate_motor(-445, &enc_instance, &htim3);
-  uart_buf_len =
-      sprintf(uart_buf, "Counter value = %ld\r\n", enc_instance.position);
-  HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  //
+  // rotate_motor(-445, &enc_instance, &htim3);
+  // uart_buf_len =
+  //     sprintf(uart_buf, "Counter value = %ld\r\n", enc_instance.position);
+  // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
+  //
   // HAL_Delay(1000);
   // };
   // measure(&Meas);
@@ -205,8 +207,8 @@ int main(void) {
   // uart_buf_len = sprintf(uart_buf, "test =  %d\r\n", test);
   // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
-  HAL_GPIO_WritePin(PUMP_HOLD_D10_GPIO_Port, PUMP_HOLD_D10_Pin, GPIO_PIN_SET);
-  HAL_Delay(2000);
+  // HAL_GPIO_WritePin(PUMP_HOLD_D10_GPIO_Port, PUMP_HOLD_D10_Pin,
+  // GPIO_PIN_SET); HAL_Delay(2000);
 
   // while (1) {
   //   measure(&Meas);
@@ -866,7 +868,7 @@ void analyse(struct MeasureData *s) {
   const int SCALE = 1000;
 
   for (int i = 0; i < s->t_end; i++) {
-    if (s->signal[i] < TRIGGER) { // aprox. 2V TODO change it to 1V
+    if (s->signal[i] < TRIGGER) { // aprox. 2V  TODO: change it to 1V
       s->signal[i] = 0;
     } else {
       s->signal[i] = 1;
