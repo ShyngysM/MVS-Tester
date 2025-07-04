@@ -205,8 +205,8 @@ int main(void) {
   // uart_buf_len = sprintf(uart_buf, "test =  %d\r\n", test);
   // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
-  // HAL_GPIO_WritePin(PUMP_D13_GPIO_Port, PUMP_D13_Pin, GPIO_PIN_SET);
-  // HAL_Delay(2000);
+  HAL_GPIO_WritePin(PUMP_HOLD_D10_GPIO_Port, PUMP_HOLD_D10_Pin, GPIO_PIN_SET);
+  HAL_Delay(2000);
 
   // while (1) {
   //   measure(&Meas);
@@ -226,7 +226,7 @@ int main(void) {
 
     if (ph_state == true) {
       // PUMP ON!
-      HAL_GPIO_WritePin(PUMP_D13_GPIO_Port, PUMP_D13_Pin, GPIO_PIN_SET);
+      HAL_GPIO_WritePin(PUMP_MVS_D13_GPIO_Port, PUMP_MVS_D13_Pin, GPIO_PIN_SET);
       HAL_Delay(2000);
       measure(&Meas);
       analyse(&Meas);
@@ -704,12 +704,15 @@ static void MX_GPIO_Init(void) {
   HAL_GPIO_WritePin(USB_FS_PWR_EN_GPIO_Port, USB_FS_PWR_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(PUMP_D13_GPIO_Port, PUMP_D13_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(PUMP_MVS_D13_GPIO_Port, PUMP_MVS_D13_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB,
                     LD1_Pin | LD3_Pin | ENCMOTOR_D1_Pin | ENCMOTOR_D0_Pin,
                     GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(PUMP_HOLD_D10_GPIO_Port, PUMP_HOLD_D10_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOG, HELP_SIGNAL_D8_Pin | VIBROMOTOR_D7_Pin,
@@ -731,12 +734,12 @@ static void MX_GPIO_Init(void) {
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(USB_FS_PWR_EN_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PUMP_D13_Pin */
-  GPIO_InitStruct.Pin = PUMP_D13_Pin;
+  /*Configure GPIO pin : PUMP_MVS_D13_Pin */
+  GPIO_InitStruct.Pin = PUMP_MVS_D13_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(PUMP_D13_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(PUMP_MVS_D13_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LD1_Pin LD3_Pin ENCMOTOR_D1_Pin ENCMOTOR_D0_Pin */
   GPIO_InitStruct.Pin = LD1_Pin | LD3_Pin | ENCMOTOR_D1_Pin | ENCMOTOR_D0_Pin;
@@ -744,6 +747,13 @@ static void MX_GPIO_Init(void) {
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PUMP_HOLD_D10_Pin */
+  GPIO_InitStruct.Pin = PUMP_HOLD_D10_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(PUMP_HOLD_D10_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_FS_OVCR_Pin */
   GPIO_InitStruct.Pin = USB_FS_OVCR_Pin;

@@ -73,8 +73,8 @@ void Error_Handler(void);
 #define PH1_MCU_GPIO_Port GPIOH
 #define ADC_MVS_A0_Pin GPIO_PIN_3
 #define ADC_MVS_A0_GPIO_Port GPIOA
-#define PUMP_D13_Pin GPIO_PIN_5
-#define PUMP_D13_GPIO_Port GPIOA
+#define PUMP_MVS_D13_Pin GPIO_PIN_5
+#define PUMP_MVS_D13_GPIO_Port GPIOA
 #define ENCODER1_D12_Pin GPIO_PIN_6
 #define ENCODER1_D12_GPIO_Port GPIOA
 #define ENCODER2_D11_Pin GPIO_PIN_7
@@ -91,6 +91,8 @@ void Error_Handler(void);
 #define STLINK_RX_GPIO_Port GPIOD
 #define STLINK_TX_Pin GPIO_PIN_9
 #define STLINK_TX_GPIO_Port GPIOD
+#define PUMP_HOLD_D10_Pin GPIO_PIN_14
+#define PUMP_HOLD_D10_GPIO_Port GPIOD
 #define USB_FS_OVCR_Pin GPIO_PIN_7
 #define USB_FS_OVCR_GPIO_Port GPIOG
 #define USB_FS_VBUS_Pin GPIO_PIN_9
