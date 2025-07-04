@@ -222,10 +222,11 @@ int main(void) {
   while (1) {
     /* ACTUAL FLOW */
 
-    ph_state = photosence(PH_TRIGGER, &hadc2);
+    // ph_state = photosence(PH_TRIGGER, &hadc2);
 
     if (ph_state == true) {
       // PUMP ON!
+      //TODO: Add PUMP2 to hold sensors on förderer
       HAL_GPIO_WritePin(PUMP_D13_GPIO_Port, PUMP_D13_Pin, GPIO_PIN_SET);
       HAL_Delay(2000);
       measure(&Meas);

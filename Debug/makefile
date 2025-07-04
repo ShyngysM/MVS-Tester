@@ -47,7 +47,7 @@ MAP_FILES += \
 h7a3zi_combine2.map \
 
 SIZE_OUTPUT += \
-h7a3zi_combine2.size.stdout \
+default.size.stdout \
 
 OBJDUMP_LIST += \
 h7a3zi_combine2.list \
@@ -65,7 +65,7 @@ h7a3zi_combine2.elf h7a3zi_combine2.map: $(OBJS) $(USER_OBJS) /home/sm/dev/stm32
 	@echo 'Finished building target: $@'
 	@echo ' '
 
-h7a3zi_combine2.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	arm-none-eabi-size  $(EXECUTABLES)
 	@echo 'Finished building: $@'
 	@echo ' '
@@ -77,7 +77,7 @@ h7a3zi_combine2.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 
 # Other Targets
 clean:
-	-$(RM) h7a3zi_combine2.elf h7a3zi_combine2.list h7a3zi_combine2.map h7a3zi_combine2.size.stdout
+	-$(RM) default.size.stdout h7a3zi_combine2.elf h7a3zi_combine2.list h7a3zi_combine2.map
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
