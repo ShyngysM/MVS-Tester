@@ -1,3 +1,0 @@
-../Core/Src/uart_transmit.c:7:6:uart_transmit_msg	16	static
-../Core/Src/uart_transmit.c:24:6:uart_transmit_table	80	static
-../Core/Src/uart_transmit.c:50:6:uart_transmit_array	552	static
