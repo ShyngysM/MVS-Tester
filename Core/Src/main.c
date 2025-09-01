@@ -207,7 +207,7 @@ int main(void) {
   // uart_buf_len = sprintf(uart_buf, "test =  %d\r\n", test);
   // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
 
-  // HAL_GPIO_WritePin(PUMP_HOLD_D10_GPIO_Port, PUMP_HOLD_D10_Pin,
+  HAL_GPIO_WritePin(PUMP_HOLD_D10_GPIO_Port, PUMP_HOLD_D10_Pin,
   // GPIO_PIN_SET); HAL_Delay(2000);
 
   // while (1) {
@@ -224,7 +224,7 @@ int main(void) {
   while (1) {
     /* ACTUAL FLOW */
 
-    // ph_state = photosence(PH_TRIGGER, &hadc2);
+    ph_state = photosence(PH_TRIGGER, &hadc2);
 
     if (ph_state == true) {
       // PUMP ON!
