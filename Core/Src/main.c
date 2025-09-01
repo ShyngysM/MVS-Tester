@@ -224,7 +224,7 @@ int main(void) {
   while (1) {
     /* ACTUAL FLOW */
 
-    // ph_state = photosence(PH_TRIGGER, &hadc2);
+    ph_state = photosence(PH_TRIGGER, &hadc2);
 
     if (ph_state == true) {
       // PUMP ON!
