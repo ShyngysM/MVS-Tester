@@ -165,7 +165,7 @@ int main(void) {
   /***************************************************** TEST AREA
    * *****************************************************/
 
-  uart_transmit_msg("Hi!", &huart3);
+  // uart_transmit_msg("Hi!", &huart3);
 
   // for (int i = 0; i < 10; i++) {
   // int angle = 445 * i;
@@ -216,15 +216,29 @@ int main(void) {
   //   uart_transmit_csv();
   //   HAL_Delay(1000);
   // }
+  // HAL_GPIO_WritePin(PUMP_MVS_D13_GPIO_Port, PUMP_MVS_D13_Pin, GPIO_PIN_SET);
+  // HAL_Delay(1000);
   // rotate_motor(PI, &enc_instance, &htim3);
+  uart_transmit_msg("MVS0924.02 | 100 Measurements per MVS",
+                    &huart3);
+  for (int k = 0; k < 100; k++) {
+    measure(&Meas);
+    analyse(&Meas);
+    uart_transmit_csv();
+    HAL_Delay(500);
+  };
+  // rotate_motor(0, &enc_instance, &htim3);
+  // HAL_GPIO_WritePin(PUMP_MVS_D13_GPIO_Port, PUMP_MVS_D13_Pin,
+  // GPIO_PIN_RESET); rotate_motor(PI, &enc_instance, &htim3); rotate(PI + PI /
+  // 4); // good
   /* USER CODE END 2 */
 
-  /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
     /* ACTUAL FLOW */
 
-    ph_state = photosence(PH_TRIGGER, &hadc2);
+    // ph_state = photosence(PH_TRIGGER, &hadc2);
+    // ph_state = true;
 
     if (ph_state == true) {
       // PUMP ON!
@@ -232,21 +246,27 @@ int main(void) {
       HAL_Delay(2000);
       measure(&Meas);
       analyse(&Meas);
+      uart_transmit_csv();
       // uart_transmit_csv(&Meas.count);
 
       if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
-        rotate(PI);
+        // rotate(PI);
+        rotate_motor(PI, &enc_instance, &htim3);
         measure(&Meas);
         analyse(&Meas);
+        uart_transmit_csv();
         // uart_transmit_csv(&Meas.count);
 
         if (Meas.bad == false && Meas.pulses > SENSITIVITY) {
-          rotate(PI + PI / 4); // good
+          // rotate(PI + PI / 4); // good
+          rotate_motor(PI + PI / 4, &enc_instance, &htim3);
           // PUMP OFF!
           // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
         } else {
           // uart_transmit_csv(&Meas.count);
-          rotate(PI - PI / 4); // garbage
+          uart_transmit_csv();
+          // rotate(PI - PI / 4); // garbage
+          rotate_motor(PI - PI / 4, &enc_instance, &htim3);
           // PUMP OFF!
           // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
           HAL_Delay(1000);
@@ -254,13 +274,16 @@ int main(void) {
 
       } else {
         // uart_transmit_csv(&Meas.count);
-        rotate(PI - PI / 4);
+        uart_transmit_csv();
+        // rotate(PI - PI / 4);
+        rotate_motor(PI - PI / 4, &enc_instance, &htim3);
         // PUMP OFF!
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
         HAL_Delay(1000);
       }
 
-      rotate(0);
+      // rotate(0);
+      rotate_motor(0, &enc_instance, &htim3);
     }
 
     /* USER CODE END WHILE */
