@@ -169,9 +169,10 @@ int main(void) {
 
   // for (int i = 0; i < 10; i++) {
   // int angle = 445 * i;
-  // rotate(angle);
+  // rotate(PI/2);
   //
   // rotate_motor(-445, &enc_instance, &htim3);
+  // rotate_motor(PI/6, &enc_instance, &htim3);
   // uart_buf_len =
   //     sprintf(uart_buf, "Counter value = %ld\r\n", enc_instance.position);
   // HAL_UART_Transmit(&huart3, (uint8_t *)uart_buf, uart_buf_len, 100);
@@ -218,16 +219,17 @@ int main(void) {
   // }
   // HAL_GPIO_WritePin(PUMP_MVS_D13_GPIO_Port, PUMP_MVS_D13_Pin, GPIO_PIN_SET);
   // HAL_Delay(1000);
-  // rotate_motor(PI, &enc_instance, &htim3);
-  uart_transmit_msg("MVS0924.02 | 100 Measurements per MVS",
+  // rotate_motor(PI/6, &enc_instance, &htim3);
+  uart_transmit_msg("MVS0608.02 Nr.20 | 30° tilt inc. each iteration | 12 measurements per MVS",
                     &huart3);
-  for (int k = 0; k < 100; k++) {
+  for (int k = 1; k < 13; k++) {
     measure(&Meas);
     analyse(&Meas);
     uart_transmit_csv();
     HAL_Delay(500);
+    rotate_motor(PI/6*k, &enc_instance, &htim3);
   };
-  // rotate_motor(0, &enc_instance, &htim3);
+  // rotate_motor(PI, &enc_instance, &htim3);
   // HAL_GPIO_WritePin(PUMP_MVS_D13_GPIO_Port, PUMP_MVS_D13_Pin,
   // GPIO_PIN_RESET); rotate_motor(PI, &enc_instance, &htim3); rotate(PI + PI /
   // 4); // good
